@@ -8,7 +8,7 @@ const ProjectSchema: Schema = new Schema(
             required: [true, "Please enter your project title"],
         },
         projectIdentifier: {
-            type: Number,
+            type: String,
             unique: true,
         },
         description: {

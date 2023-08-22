@@ -8,7 +8,7 @@ const TaskSchema: Schema = new Schema(
             required: [true, "Please enter your task title"],
         },
         taskIdentifier: {
-            type: Number,
+            type: String,
             unique: true,
         },
         description: {

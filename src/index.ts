@@ -6,6 +6,7 @@ import { connectDatabase } from "./config/database";
 import { Code } from "./enum/code.enum";
 import { HttpResponse } from "./domain/response";
 import { Status } from "./enum/status.enum";
+import projectRoutes from "./routes/project.route";
 
 const app = express();
 dotenv.config();
@@ -20,6 +21,7 @@ const PORT = process.env.SERVER_PORT || 5000;
 connectDatabase();
 
 // routes
+app.use("/api/v1/project", projectRoutes);
 app.get("/", (request: Request, response: Response) => {
     response
         .status(Code.OK)

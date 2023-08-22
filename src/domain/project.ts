@@ -5,7 +5,7 @@ import { ITask } from "./task";
 export interface IProject extends Document {
     id: Types.ObjectId;
     title: string;
-    projectIdentifier: number;
+    projectIdentifier: string;
     description: string;
     startDate: string;
     endDate: string;

@@ -4,7 +4,7 @@ import { IUser } from "./user";
 export interface ITask extends Document {
     id: Types.ObjectId;
     title: string;
-    taskIdentifier: Number;
+    taskIdentifier: string;
     description: string;
     startDate: string;
     endDate: string;
