@@ -34,6 +34,7 @@ const ProjectSchema: Schema = new Schema(
             },
         },
         tags: [],
+        status: { type: String, default: "Todo" },
         createdAt: {
             type: Date,
             default: Date.now,

@@ -17,5 +17,6 @@ export interface IProject extends Document {
     tags: string[];
     developers: IUser[];
     tasks: ITask[];
+    status: string;
     createdAt: string;
 }
