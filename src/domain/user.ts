@@ -10,6 +10,7 @@ export interface IUser extends Document {
     phone: string;
     address: string;
     description: string;
+    diamond: number;
     photo: {
         publicId: string;
         url: string;
