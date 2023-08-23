@@ -4,7 +4,9 @@ import { HttpResponse } from "../domain/response";
 import { Status } from "../enum/status.enum";
 import { IProject } from "../domain/project";
 import Project from "../models/project.model";
+import { randomId } from "../utils/randomId";
 
+// create new project => api/v1/project
 export const createProject = async (req: Request, res: Response) => {
     const { title, description, startDate, endDate, tags }: IProject = req.body;
 
@@ -15,7 +17,7 @@ export const createProject = async (req: Request, res: Response) => {
             tags,
             startDate,
             endDate,
-            projectIdentifier: "p123466",
+            projectIdentifier: randomId(10),
             photo: {
                 public_id: "result.public_id",
                 url: "result.secure_url",
@@ -28,6 +30,31 @@ export const createProject = async (req: Request, res: Response) => {
                 Status.OK,
                 "Project Create Successfully",
                 project
+            )
+        );
+    } catch (error: any) {
+        console.error(error);
+        res.status(Code.INTERNAL_SERVER_ERROR).send(
+            new HttpResponse(
+                Code.INTERNAL_SERVER_ERROR,
+                Status.INTERNAL_SERVER_ERROR,
+                "An error occurred"
+            )
+        );
+    }
+};
+
+// get all project => api/v1/project
+export const getAllProject = async (req: Request, res: Response) => {
+    try {
+        const projects = await Project.find();
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Successfully get project",
+                projects
             )
         );
     } catch (error: any) {
