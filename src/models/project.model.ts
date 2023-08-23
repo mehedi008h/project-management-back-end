@@ -43,4 +43,4 @@ const ProjectSchema: Schema = new Schema(
     { timestamps: true }
 );
 
-export default model<IProject>("Project", ProjectSchema);
+export default model("Project", ProjectSchema);

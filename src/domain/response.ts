@@ -8,7 +8,7 @@ export class HttpResponse {
         private statusCode: Code,
         private httpStatus: Status,
         private message: string,
-        private data?: {}
+        private data?: {} | null
     ) {
         this.timeStamp = new Date().toLocaleString();
         this.statusCode = statusCode;

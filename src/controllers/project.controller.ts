@@ -68,3 +68,29 @@ export const getAllProject = async (req: Request, res: Response) => {
         );
     }
 };
+
+// get single project by projectIdentifier => api/v1/project
+export const getProjectDetails = async (req: Request, res: Response) => {
+    try {
+        const { projectIdentifier } = req.params;
+        const project = await Project.findOne({ projectIdentifier });
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Successfully get project",
+                project
+            )
+        );
+    } catch (error: any) {
+        console.error(error);
+        res.status(Code.INTERNAL_SERVER_ERROR).send(
+            new HttpResponse(
+                Code.INTERNAL_SERVER_ERROR,
+                Status.INTERNAL_SERVER_ERROR,
+                "An error occurred"
+            )
+        );
+    }
+};
