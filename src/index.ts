@@ -8,6 +8,7 @@ import { HttpResponse } from "./domain/response";
 import { Status } from "./enum/status.enum";
 import projectRoutes from "./routes/project.route";
 import taskRoutes from "./routes/task.route";
+import { errorMiddleware } from "./middlewares/error";
 
 const app = express();
 dotenv.config();
@@ -48,6 +49,8 @@ app.all("*", (request: Request, response: Response) => {
             )
         );
 });
+
+app.use(errorMiddleware);
 
 // listning port
 app.listen(PORT, () => {
