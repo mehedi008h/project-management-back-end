@@ -69,7 +69,7 @@ export const getAllProject = async (req: Request, res: Response) => {
     }
 };
 
-// get single project by projectIdentifier => api/v1/project/projectIdentifier
+// get project details by projectIdentifier => api/v1/project/projectIdentifier
 export const getProjectDetails = async (req: Request, res: Response) => {
     try {
         const { projectIdentifier } = req.params;

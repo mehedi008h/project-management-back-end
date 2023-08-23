@@ -29,6 +29,10 @@ const TaskSchema: Schema = new Schema(
         },
         status: { type: String, default: "Todo" },
         tags: [],
+        projectIdentifier: {
+            type: String,
+            required: true,
+        },
         createdAt: {
             type: Date,
             default: Date.now,

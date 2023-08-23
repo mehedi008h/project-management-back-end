@@ -33,8 +33,8 @@ const ProjectSchema: Schema = new Schema(
                 required: true,
             },
         },
-        tags: [],
         status: { type: String, default: "Todo" },
+        tags: [],
         createdAt: {
             type: Date,
             default: Date.now,

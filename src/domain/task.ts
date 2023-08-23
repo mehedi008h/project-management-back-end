@@ -11,6 +11,7 @@ export interface ITask extends Document {
     priority: string;
     status: string;
     tags: string[];
+    projectIdentifier: string;
     developer: IUser;
     createdAt: string;
 }
