@@ -69,7 +69,7 @@ export const getAllProject = async (req: Request, res: Response) => {
     }
 };
 
-// get single project by projectIdentifier => api/v1/project
+// get single project by projectIdentifier => api/v1/project/projectIdentifier
 export const getProjectDetails = async (req: Request, res: Response) => {
     try {
         const { projectIdentifier } = req.params;
@@ -95,7 +95,7 @@ export const getProjectDetails = async (req: Request, res: Response) => {
     }
 };
 
-// get single project by projectIdentifier => api/v1/project
+// delete project by projectIdentifier => api/v1/project/projectIdentifier
 export const deleteProject = async (req: Request, res: Response) => {
     try {
         const { projectIdentifier } = req.params;
@@ -103,6 +103,59 @@ export const deleteProject = async (req: Request, res: Response) => {
 
         res.status(Code.OK).send(
             new HttpResponse(Code.OK, Status.OK, "Project Deleted Successfully")
+        );
+    } catch (error: any) {
+        console.error(error);
+        res.status(Code.INTERNAL_SERVER_ERROR).send(
+            new HttpResponse(
+                Code.INTERNAL_SERVER_ERROR,
+                Status.INTERNAL_SERVER_ERROR,
+                "An error occurred"
+            )
+        );
+    }
+};
+
+// update project => api/v1/project/update
+export const updateProject = async (req: Request, res: Response) => {
+    const {
+        id,
+        title,
+        description,
+        startDate,
+        endDate,
+        tags,
+        status,
+    }: IProject = req.body;
+
+    try {
+        const project = await Project.updateOne(
+            {
+                _id: id,
+            },
+            {
+                $set: {
+                    title,
+                    description,
+                    tags,
+                    startDate,
+                    endDate,
+                    status,
+                    photo: {
+                        public_id: "result.public_id",
+                        url: "result.secure_url",
+                    },
+                },
+            }
+        );
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Project Update Successfully",
+                project
+            )
         );
     } catch (error: any) {
         console.error(error);
