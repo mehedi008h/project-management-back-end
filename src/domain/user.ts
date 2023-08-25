@@ -18,4 +18,6 @@ export interface IUser extends Document {
     work: string;
     active: true;
     createdAt: string;
+
+    matchPassword(password: string): boolean | PromiseLike<boolean>;
 }
