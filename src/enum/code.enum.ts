@@ -5,4 +5,5 @@ export enum Code {
     CREATED = 201,
     UNAUTHORIZED = 401,
     INTERNAL_SERVER_ERROR = 500,
+    MONGOOSE_ERROR = 11000,
 }

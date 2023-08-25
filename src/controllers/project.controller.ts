@@ -5,12 +5,14 @@ import { Status } from "../enum/status.enum";
 import { IProject } from "../domain/project";
 import Project from "../models/project.model";
 import { randomId } from "../utils/randomId";
+import { catchAsyncErrors } from "../middlewares/catchAsyncErrors";
 
 // create new project => api/v1/project
-export const createProject = async (req: Request, res: Response) => {
-    const { title, description, startDate, endDate, tags }: IProject = req.body;
+export const createProject = catchAsyncErrors(
+    async (req: Request, res: Response) => {
+        const { title, description, startDate, endDate, tags }: IProject =
+            req.body;
 
-    try {
         const project = await Project.create({
             title,
             description,
@@ -32,21 +34,12 @@ export const createProject = async (req: Request, res: Response) => {
                 project
             )
         );
-    } catch (error: any) {
-        console.error(error);
-        res.status(Code.INTERNAL_SERVER_ERROR).send(
-            new HttpResponse(
-                Code.INTERNAL_SERVER_ERROR,
-                Status.INTERNAL_SERVER_ERROR,
-                "An error occurred"
-            )
-        );
     }
-};
+);
 
 // get all project => api/v1/project
-export const getAllProject = async (req: Request, res: Response) => {
-    try {
+export const getAllProject = catchAsyncErrors(
+    async (req: Request, res: Response) => {
         const projects = await Project.find();
 
         res.status(Code.OK).send(
@@ -57,21 +50,12 @@ export const getAllProject = async (req: Request, res: Response) => {
                 projects
             )
         );
-    } catch (error: any) {
-        console.error(error);
-        res.status(Code.INTERNAL_SERVER_ERROR).send(
-            new HttpResponse(
-                Code.INTERNAL_SERVER_ERROR,
-                Status.INTERNAL_SERVER_ERROR,
-                "An error occurred"
-            )
-        );
     }
-};
+);
 
 // get project details by projectIdentifier => api/v1/project/projectIdentifier
-export const getProjectDetails = async (req: Request, res: Response) => {
-    try {
+export const getProjectDetails = catchAsyncErrors(
+    async (req: Request, res: Response) => {
         const { projectIdentifier } = req.params;
         const project = await Project.findOne({ projectIdentifier });
 
@@ -83,52 +67,34 @@ export const getProjectDetails = async (req: Request, res: Response) => {
                 project
             )
         );
-    } catch (error: any) {
-        console.error(error);
-        res.status(Code.INTERNAL_SERVER_ERROR).send(
-            new HttpResponse(
-                Code.INTERNAL_SERVER_ERROR,
-                Status.INTERNAL_SERVER_ERROR,
-                "An error occurred"
-            )
-        );
     }
-};
+);
 
 // delete project by projectIdentifier => api/v1/project/projectIdentifier
-export const deleteProject = async (req: Request, res: Response) => {
-    try {
+export const deleteProject = catchAsyncErrors(
+    async (req: Request, res: Response) => {
         const { projectIdentifier } = req.params;
         const project = await Project.deleteOne({ projectIdentifier });
 
         res.status(Code.OK).send(
             new HttpResponse(Code.OK, Status.OK, "Project Deleted Successfully")
         );
-    } catch (error: any) {
-        console.error(error);
-        res.status(Code.INTERNAL_SERVER_ERROR).send(
-            new HttpResponse(
-                Code.INTERNAL_SERVER_ERROR,
-                Status.INTERNAL_SERVER_ERROR,
-                "An error occurred"
-            )
-        );
     }
-};
+);
 
 // update project => api/v1/project/update
-export const updateProject = async (req: Request, res: Response) => {
-    const {
-        id,
-        title,
-        description,
-        startDate,
-        endDate,
-        tags,
-        status,
-    }: IProject = req.body;
+export const updateProject = catchAsyncErrors(
+    async (req: Request, res: Response) => {
+        const {
+            id,
+            title,
+            description,
+            startDate,
+            endDate,
+            tags,
+            status,
+        }: IProject = req.body;
 
-    try {
         const project = await Project.updateOne(
             {
                 _id: id,
@@ -157,14 +123,5 @@ export const updateProject = async (req: Request, res: Response) => {
                 project
             )
         );
-    } catch (error: any) {
-        console.error(error);
-        res.status(Code.INTERNAL_SERVER_ERROR).send(
-            new HttpResponse(
-                Code.INTERNAL_SERVER_ERROR,
-                Status.INTERNAL_SERVER_ERROR,
-                "An error occurred"
-            )
-        );
     }
-};
+);

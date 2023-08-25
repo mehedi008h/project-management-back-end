@@ -73,3 +73,18 @@ export const getAllTask = catchAsyncErrors(
         );
     }
 );
+
+// const checkProjectExists = async(projectIdentifier: string) => {
+//     const project = await Project.findOne({ projectIdentifier });
+//     if (!project)
+//         return res
+//             .status(Code.NOT_FOUND)
+//             .send(
+//                 new HttpResponse(
+//                     Code.NOT_FOUND,
+//                     Status.NOT_FOUND,
+//                     "Project not found with this identifier",
+//                     project
+//                 )
+//             );
+// }

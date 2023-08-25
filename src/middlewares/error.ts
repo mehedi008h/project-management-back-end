@@ -3,6 +3,7 @@ import { Code } from "../enum/code.enum";
 import { ErrorHandler } from "../utils/errorHandler";
 import { Status } from "../enum/status.enum";
 import { HttpResponse } from "../domain/response";
+import { Error } from "mongoose";
 
 export const errorMiddleware = (
     err: ErrorHandler,
@@ -20,6 +21,32 @@ export const errorMiddleware = (
     if (err.name === "CastError") {
         console.log(err);
         const message = `Resource not found. Invalid Path!!!`;
+        error = new ErrorHandler({
+            statusCode: Code.BAD_REQUEST,
+            httpStatus: Status.BAD_REQUEST,
+            message: message,
+        });
+    }
+
+    // Handling Mongoose Validation Error
+    if (err.name === "ValidationError") {
+        if (err instanceof Error.ValidationError) {
+            const message = Object.values(err.errors).map(
+                (value) => value.message
+            );
+
+            return res.status(400).json({
+                success: false,
+                statusCode: Code.BAD_REQUEST,
+                httpStatus: Status.BAD_REQUEST,
+                message: message,
+            });
+        }
+    }
+
+    // Handling Mongoose duplicate key errors
+    if (err.name === "MongoError" && err.statusCode === 11000) {
+        const message = "There was a duplicate key entered";
         error = new ErrorHandler({
             statusCode: Code.BAD_REQUEST,
             httpStatus: Status.BAD_REQUEST,
