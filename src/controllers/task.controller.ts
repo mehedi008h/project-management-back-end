@@ -65,14 +65,8 @@ export const getTaskDetails = catchAsyncErrors(
     async (req: Request, res: Response, next: NextFunction) => {
         const { projectIdentifier, taskIdentifier } = req.params;
 
-        // find project
-        const project = await checkProjectExists(projectIdentifier);
-
-        // find task
-        const task = await checkTaskExists(
-            taskIdentifier,
-            project.projectIdentifier
-        );
+        // find task in project
+        const task = await checkTaskExists(taskIdentifier, projectIdentifier);
 
         res.status(Code.OK).send(
             new HttpResponse(Code.OK, Status.OK, "Get task details", task)
@@ -95,14 +89,8 @@ export const updateTask = catchAsyncErrors(
             priority,
         }: ITask = req.body;
 
-        // find project
-        const project = await checkProjectExists(projectIdentifier);
-
-        // find task
-        const task = await checkTaskExists(
-            taskIdentifier,
-            project.projectIdentifier
-        );
+        // find task in project
+        const task = await checkTaskExists(taskIdentifier, projectIdentifier);
 
         const updateTask = await Task.updateOne(
             {
@@ -131,16 +119,36 @@ export const updateTask = catchAsyncErrors(
     }
 );
 
+// delete task by taskIdentifier => api/v1/task/projectIdentifier/taskIdentifier
+export const deleteTask = catchAsyncErrors(
+    async (req: Request, res: Response) => {
+        const { projectIdentifier, taskIdentifier } = req.params;
+
+        // find task in project
+        const task = await checkTaskExists(taskIdentifier, projectIdentifier);
+
+        // delete task
+        await task.deleteOne({ taskIdentifier });
+
+        res.status(Code.OK).send(
+            new HttpResponse(Code.OK, Status.OK, "Task Deleted Successfully")
+        );
+    }
+);
+
 // check task existence in project
 export const checkTaskExists = async (
     taskIdentifier: string,
     projectIdentifier: string
 ) => {
+    // check project existence
+    const project = await checkProjectExists(projectIdentifier);
     // find task
     const task = await Task.findOne({
         taskIdentifier,
     });
 
+    // if not exist throw error
     if (!task) {
         throw new ErrorHandler({
             statusCode: Code.NOT_FOUND,
@@ -149,7 +157,8 @@ export const checkTaskExists = async (
         });
     }
 
-    if (task?.projectIdentifier !== projectIdentifier) {
+    // check task exists in the project
+    if (task?.projectIdentifier !== project.projectIdentifier) {
         throw new ErrorHandler({
             statusCode: Code.BAD_REQUEST,
             httpStatus: Status.BAD_REQUEST,
