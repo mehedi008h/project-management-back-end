@@ -6,6 +6,7 @@ import { IProject } from "../domain/project";
 import Project from "../models/project.model";
 import { randomId } from "../utils/randomId";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors";
+import { ErrorHandler } from "../utils/errorHandler";
 
 // create new project => api/v1/project
 export const createProject = catchAsyncErrors(
@@ -20,6 +21,7 @@ export const createProject = catchAsyncErrors(
             startDate,
             endDate,
             projectIdentifier: randomId(10),
+            // TODO: implement cloudinary
             photo: {
                 public_id: "result.public_id",
                 url: "result.secure_url",
@@ -57,7 +59,8 @@ export const getAllProject = catchAsyncErrors(
 export const getProjectDetails = catchAsyncErrors(
     async (req: Request, res: Response) => {
         const { projectIdentifier } = req.params;
-        const project = await Project.findOne({ projectIdentifier });
+        // check project existence
+        const project = await checkProjectExists(projectIdentifier);
 
         res.status(Code.OK).send(
             new HttpResponse(
@@ -74,7 +77,11 @@ export const getProjectDetails = catchAsyncErrors(
 export const deleteProject = catchAsyncErrors(
     async (req: Request, res: Response) => {
         const { projectIdentifier } = req.params;
-        const project = await Project.deleteOne({ projectIdentifier });
+        // check project existence
+        const project = await checkProjectExists(projectIdentifier);
+
+        // delete project
+        await project.deleteOne({ projectIdentifier });
 
         res.status(Code.OK).send(
             new HttpResponse(Code.OK, Status.OK, "Project Deleted Successfully")
@@ -95,6 +102,7 @@ export const updateProject = catchAsyncErrors(
             status,
         }: IProject = req.body;
 
+        // project find by project id and update project
         const project = await Project.updateOne(
             {
                 _id: id,
@@ -125,3 +133,18 @@ export const updateProject = catchAsyncErrors(
         );
     }
 );
+
+// check project existence
+export const checkProjectExists = async (projectIdentifier: string) => {
+    // find project
+    const project = await Project.findOne({ projectIdentifier });
+    if (!project) {
+        throw new ErrorHandler({
+            statusCode: Code.NOT_FOUND,
+            httpStatus: Status.NOT_FOUND,
+            message: "Project you are looking for does not exist!!!",
+        });
+    }
+
+    return project;
+};

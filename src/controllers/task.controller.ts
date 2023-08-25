@@ -2,12 +2,11 @@ import { NextFunction, Request, Response } from "express";
 import { Code } from "../enum/code.enum";
 import { HttpResponse } from "../domain/response";
 import { Status } from "../enum/status.enum";
-import Project from "../models/project.model";
 import { ITask } from "../domain/task";
 import Task from "../models/task.model";
 import { randomId } from "../utils/randomId";
-import { ErrorHandler } from "../utils/errorHandler";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors";
+import { checkProjectExists } from "./project.controller";
 
 // assign new task => api/v1/task
 export const assignTasks = catchAsyncErrors(
@@ -17,14 +16,7 @@ export const assignTasks = catchAsyncErrors(
             req.body;
 
         // find project
-        const project = await Project.findOne({ projectIdentifier });
-        if (!project) {
-            throw new ErrorHandler({
-                statusCode: Code.NOT_FOUND,
-                httpStatus: Status.NOT_FOUND,
-                message: "Project you are looking for does not exist!!!",
-            });
-        }
+        const project = await checkProjectExists(projectIdentifier);
 
         // assign new task
         const task = await Task.create({
@@ -54,14 +46,7 @@ export const getAllTask = catchAsyncErrors(
         const { projectIdentifier } = req.params;
 
         // find project
-        const project = await Project.findOne({ projectIdentifier });
-        if (!project) {
-            throw new ErrorHandler({
-                statusCode: Code.NOT_FOUND,
-                httpStatus: Status.NOT_FOUND,
-                message: "Project you are looking for does not exist!!!",
-            });
-        }
+        const project = await checkProjectExists(projectIdentifier);
 
         // find all project task
         const tasks = await Task.find({
@@ -73,18 +58,3 @@ export const getAllTask = catchAsyncErrors(
         );
     }
 );
-
-// const checkProjectExists = async(projectIdentifier: string) => {
-//     const project = await Project.findOne({ projectIdentifier });
-//     if (!project)
-//         return res
-//             .status(Code.NOT_FOUND)
-//             .send(
-//                 new HttpResponse(
-//                     Code.NOT_FOUND,
-//                     Status.NOT_FOUND,
-//                     "Project not found with this identifier",
-//                     project
-//                 )
-//             );
-// }
