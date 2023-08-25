@@ -91,7 +91,74 @@ export const getTaskDetails = catchAsyncErrors(
         }
 
         res.status(Code.OK).send(
-            new HttpResponse(Code.OK, Status.OK, "Get all project tasks", task)
+            new HttpResponse(Code.OK, Status.OK, "Get task details", task)
+        );
+    }
+);
+
+// update task => api/v1/task/projectIdentifier/update
+export const updateTask = catchAsyncErrors(
+    async (req: Request, res: Response, next: NextFunction) => {
+        const { projectIdentifier } = req.params;
+        const {
+            id,
+            taskIdentifier,
+            title,
+            description,
+            startDate,
+            endDate,
+            tags,
+            priority,
+        }: ITask = req.body;
+
+        // find project
+        const project = await checkProjectExists(projectIdentifier);
+
+        // find task
+        const task = await Task.findOne({
+            taskIdentifier,
+        });
+
+        if (!task) {
+            throw new ErrorHandler({
+                statusCode: Code.NOT_FOUND,
+                httpStatus: Status.NOT_FOUND,
+                message: "Task you are looking for does not exist!!!",
+            });
+        }
+
+        if (task?.projectIdentifier !== project.projectIdentifier) {
+            throw new ErrorHandler({
+                statusCode: Code.BAD_REQUEST,
+                httpStatus: Status.BAD_REQUEST,
+                message:
+                    "Task you are updating does not exist in this project!!!",
+            });
+        }
+
+        const updateTask = await Task.updateOne(
+            {
+                _id: id,
+            },
+            {
+                $set: {
+                    title,
+                    description,
+                    tags,
+                    startDate,
+                    endDate,
+                    priority,
+                },
+            }
+        );
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Task updated successfully",
+                updateTask
+            )
         );
     }
 );
