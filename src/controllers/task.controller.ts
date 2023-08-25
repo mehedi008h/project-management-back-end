@@ -92,6 +92,7 @@ export const updateTask = catchAsyncErrors(
         // find task in project
         const task = await checkTaskExists(taskIdentifier, projectIdentifier);
 
+        // update task
         const updateTask = await Task.updateOne(
             {
                 _id: id,

@@ -9,6 +9,7 @@ import { Status } from "./enum/status.enum";
 import projectRoutes from "./routes/project.route";
 import taskRoutes from "./routes/task.route";
 import { errorMiddleware } from "./middlewares/error";
+import authRoutes from "./routes/auth.route";
 
 const app = express();
 dotenv.config();
@@ -25,6 +26,7 @@ connectDatabase();
 // routes
 app.use("/api/v1/project", projectRoutes);
 app.use("/api/v1/task", taskRoutes);
+app.use("/api/v1/auth", authRoutes);
 app.get("/", (request: Request, response: Response) => {
     response
         .status(Code.OK)

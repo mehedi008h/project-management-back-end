@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import bcrypt from "bcrypt";
 import { IUser } from "../domain/user";
 
 const UserSchema: Schema = new Schema(
@@ -30,32 +31,27 @@ const UserSchema: Schema = new Schema(
         },
         phone: {
             type: String,
-            required: [false, "Please enter your phone number"],
             maxLength: [200, "Your phone number cannot exceed 200 characters"],
         },
         address: {
             type: String,
-            required: [false, "Please enter your address"],
             maxLength: [200, "Your address cannot exceed 200 characters"],
         },
         password: {
             type: String,
             required: [true, "Please enter your password"],
-            minlength: [6, "Your password must be longer than 6 characters"],
+            minlength: [8, "Your password must be longer than 8 characters"],
             select: false,
         },
         description: {
             type: String,
-            required: [true, "Please enter your bio"],
         },
         avatar: {
             public_id: {
                 type: String,
-                required: true,
             },
             url: {
                 type: String,
-                required: true,
             },
         },
         work: {
@@ -70,5 +66,15 @@ const UserSchema: Schema = new Schema(
     },
     { timestamps: true }
 );
+
+// Encrypting password before saving user
+UserSchema.pre<IUser>("save", async function (next: any) {
+    if (!this.isModified("password")) {
+        return next();
+    }
+
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+});
 
 export default model<IUser>("User", UserSchema);
