@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+    acceptInvitation,
     checkSendInvitation,
     getAllInvitation,
     getAllUsers,
@@ -15,5 +16,8 @@ userRoutes.route("/invitation").get(isAuthenticatedUser, getAllInvitation);
 userRoutes
     .route("/check-invitation/:id")
     .get(isAuthenticatedUser, checkSendInvitation);
+userRoutes
+    .route("/accept-invitation")
+    .put(isAuthenticatedUser, acceptInvitation);
 
 export default userRoutes;

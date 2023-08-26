@@ -7,6 +7,7 @@ import { HttpResponse } from "../domain/response";
 import User from "../models/user.model";
 import { IUser } from "../domain/user";
 import { ErrorHandler } from "../utils/errorHandler";
+import { request } from "http";
 
 // get all user => api/v1/user
 export const getAllUsers = catchAsyncErrors(
@@ -100,6 +101,50 @@ export const checkSendInvitation = catchAsyncErrors(
                 Status.OK,
                 "Invitation Already Send",
                 user
+            )
+        );
+    }
+);
+
+// accept invitation => api/v1/user/accept-invitation
+export const acceptInvitation = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        const { id }: IUser = req.body;
+        // find current user
+        const currentUser = await checkUserExists(req.user.id);
+
+        // check invitation user exists
+        const existsUser = await checkUserExists(id);
+
+        // update team members current user
+        const updateCurrentUser = await User.updateOne(
+            { _id: req.user.id },
+            {
+                $addToSet: {
+                    teamMates: [id],
+                },
+                $pull: {
+                    invitations: id,
+                },
+            }
+        );
+
+        // update team members invitation send user
+        const updateExistsUser = await User.updateOne(
+            { _id: id },
+            {
+                $addToSet: {
+                    teamMates: [req.user.id],
+                },
+            }
+        );
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Invitation Accept Successfully",
+                updateCurrentUser
             )
         );
     }
