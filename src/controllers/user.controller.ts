@@ -42,8 +42,8 @@ export const sendInvitation = catchAsyncErrors(
                 _id: id,
             },
             {
-                $set: {
-                    invitations: [currentUser?.id],
+                $addToSet: {
+                    invitations: [currentUser.id],
                 },
             }
         );

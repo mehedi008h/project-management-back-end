@@ -5,6 +5,6 @@ import { isAuthenticatedUser } from "../middlewares/auth";
 const userRoutes = Router();
 
 userRoutes.route("/").get(isAuthenticatedUser, getAllUsers);
-userRoutes.route("/send-invitation").post(isAuthenticatedUser, sendInvitation);
+userRoutes.route("/send-invitation").put(isAuthenticatedUser, sendInvitation);
 
 export default userRoutes;
