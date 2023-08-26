@@ -59,6 +59,28 @@ export const sendInvitation = catchAsyncErrors(
     }
 );
 
+// get all invitations => api/v1/user/invitation
+export const getAllInvitation = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        // find current user
+        const currentUser = await checkUserExists(req.user.id);
+
+        // find all invitations of current user
+        const users = await User.find({
+            _id: currentUser.invitations,
+        });
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Get All Invitation Successfully",
+                users
+            )
+        );
+    }
+);
+
 // check user existence
 export const checkUserExists = async (userId: string) => {
     // find user

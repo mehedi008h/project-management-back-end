@@ -19,7 +19,6 @@ export const errorMiddleware = (
 
     // Wrong Mongoose Object ID Error
     if (err.name === "CastError") {
-        console.log(err);
         const message = `Resource not found. Invalid Path!!!`;
         error = new ErrorHandler({
             statusCode: Code.BAD_REQUEST,
