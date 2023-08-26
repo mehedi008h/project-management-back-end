@@ -1,5 +1,4 @@
 import { Document, Types } from "mongoose";
-import { ITask } from "./task";
 
 export interface IProject extends Document {
     id: Types.ObjectId;
@@ -15,7 +14,7 @@ export interface IProject extends Document {
     projectLeader: string;
     tags: string[];
     developers: string[];
-    tasks: ITask[];
+    tasks: string[];
     status: string;
     createdAt: string;
 }

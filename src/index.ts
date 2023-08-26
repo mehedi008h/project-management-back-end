@@ -6,12 +6,13 @@ import cookieParser from "cookie-parser";
 
 import { connectDatabase } from "./config/database";
 import { Code } from "./enum/code.enum";
-import { HttpResponse } from "./domain/response";
 import { Status } from "./enum/status.enum";
+import { HttpResponse } from "./domain/response";
+import { errorMiddleware } from "./middlewares/error";
 import projectRoutes from "./routes/project.route";
 import taskRoutes from "./routes/task.route";
-import { errorMiddleware } from "./middlewares/error";
 import authRoutes from "./routes/auth.route";
+import userRoutes from "./routes/user.route";
 
 const app = express();
 dotenv.config();
@@ -30,6 +31,7 @@ connectDatabase();
 app.use("/api/v1/project", projectRoutes);
 app.use("/api/v1/task", taskRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/user", userRoutes);
 app.get("/", (request: Request, response: Response) => {
     response
         .status(Code.OK)

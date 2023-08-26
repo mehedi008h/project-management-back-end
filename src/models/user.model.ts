@@ -59,6 +59,20 @@ const UserSchema: Schema = new Schema(
         work: {
             type: String,
         },
+        invitations: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "User",
+                required: true,
+            },
+        ],
+        teamMates: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "User",
+                required: true,
+            },
+        ],
         diamond: { type: Number, default: 0 },
         active: { type: Boolean, default: true },
         createdAt: {

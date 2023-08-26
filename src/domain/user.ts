@@ -17,6 +17,8 @@ export interface IUser extends Document {
     };
     work: string;
     active: true;
+    invitations: string[];
+    teamMates: string[];
     createdAt: string;
 
     matchPassword(password: string): boolean | PromiseLike<boolean>;

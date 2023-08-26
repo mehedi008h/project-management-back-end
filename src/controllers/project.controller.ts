@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { Code } from "../enum/code.enum";
 import { HttpResponse } from "../domain/response";
 import { Status } from "../enum/status.enum";

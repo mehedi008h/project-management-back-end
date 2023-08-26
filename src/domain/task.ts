@@ -1,5 +1,4 @@
 import { Document, Types } from "mongoose";
-import { IUser } from "./user";
 
 export interface ITask extends Document {
     id: Types.ObjectId;
@@ -12,6 +11,6 @@ export interface ITask extends Document {
     status: string;
     tags: string[];
     projectIdentifier: string;
-    developer: IUser;
+    developer: string;
     createdAt: string;
 }

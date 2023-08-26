@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { JwtPayload, verify } from "jsonwebtoken";
 
 import { ExpressRequest } from "../domain/expressRequest.interface";
@@ -17,8 +17,8 @@ export const isAuthenticatedUser = async (
     if (!token) {
         return res.send(
             new HttpResponse(
-                Code.BAD_REQUEST,
-                Status.BAD_REQUEST,
+                Code.UNAUTHORIZED,
+                Status.UNAUTHORIZED,
                 "Login first to access this resource!"
             )
         );
