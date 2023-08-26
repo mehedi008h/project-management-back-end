@@ -7,10 +7,11 @@ import Project from "../models/project.model";
 import { randomId } from "../utils/randomId";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors";
 import { ErrorHandler } from "../utils/errorHandler";
+import { ExpressRequest } from "../domain/expressRequest.interface";
 
 // create new project => api/v1/project
 export const createProject = catchAsyncErrors(
-    async (req: Request, res: Response) => {
+    async (req: ExpressRequest, res: Response) => {
         const { title, description, startDate, endDate, tags }: IProject =
             req.body;
 
@@ -26,6 +27,8 @@ export const createProject = catchAsyncErrors(
                 public_id: "result.public_id",
                 url: "result.secure_url",
             },
+            projectLeader: req.user.id,
+            developers: [req.user.id],
         });
 
         res.status(Code.OK).send(
@@ -75,10 +78,21 @@ export const getProjectDetails = catchAsyncErrors(
 
 // delete project by projectIdentifier => api/v1/project/projectIdentifier
 export const deleteProject = catchAsyncErrors(
-    async (req: Request, res: Response) => {
+    async (req: ExpressRequest, res: Response) => {
         const { projectIdentifier } = req.params;
         // check project existence
         const project = await checkProjectExists(projectIdentifier);
+        console.log("Project Leader: " + project.projectLeader);
+        console.log("Current User: " + req.user.id);
+
+        if (project.projectLeader != req.user.id) {
+            throw new ErrorHandler({
+                statusCode: Code.UNAUTHORIZED,
+                httpStatus: Status.UNAUTHORIZED,
+                message:
+                    "You don't have permission to access this resources!!!",
+            });
+        }
 
         // delete project
         await project.deleteOne({ projectIdentifier });

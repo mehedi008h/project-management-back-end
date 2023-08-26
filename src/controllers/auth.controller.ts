@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { IUser } from "../domain/user";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors";
 import User from "../models/user.model";
@@ -6,6 +6,8 @@ import { Code } from "../enum/code.enum";
 import { HttpResponse } from "../domain/response";
 import { Status } from "../enum/status.enum";
 import { randomId } from "../utils/randomId";
+import { sendToken } from "../utils/jwtToken";
+import { ExpressRequest } from "../domain/expressRequest.interface";
 
 // register user => api/v1/auth/register
 export const registerUser = catchAsyncErrors(
@@ -74,13 +76,18 @@ export const loginUser = catchAsyncErrors(
             );
         }
 
+        sendToken(user, 200, res);
+    }
+);
+
+// get currently authenticated user
+export const loggedInUser = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response, next: NextFunction) => {
+        // find user by userId
+        const user = await User.findById(req.user.id);
+
         res.status(Code.OK).send(
-            new HttpResponse(
-                Code.OK,
-                Status.OK,
-                "Login User Successfully",
-                user
-            )
+            new HttpResponse(Code.OK, Status.OK, "Get User Successfully", user)
         );
     }
 );

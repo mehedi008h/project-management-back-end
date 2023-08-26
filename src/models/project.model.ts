@@ -33,6 +33,18 @@ const ProjectSchema: Schema = new Schema(
                 required: true,
             },
         },
+        projectLeader: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+        developers: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "User",
+                required: true,
+            },
+        ],
         status: { type: String, default: "Todo" },
         tags: [],
         createdAt: {

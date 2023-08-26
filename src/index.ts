@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import ip from "ip";
+import cookieParser from "cookie-parser";
+
 import { connectDatabase } from "./config/database";
 import { Code } from "./enum/code.enum";
 import { HttpResponse } from "./domain/response";
@@ -17,6 +19,7 @@ dotenv.config();
 // middleware
 app.use(express.json());
 app.use(cors());
+app.use(cookieParser());
 
 const PORT = process.env.SERVER_PORT || 5000;
 

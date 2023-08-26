@@ -20,4 +20,5 @@ export interface IUser extends Document {
     createdAt: string;
 
     matchPassword(password: string): boolean | PromiseLike<boolean>;
+    getSignedToken(): string;
 }

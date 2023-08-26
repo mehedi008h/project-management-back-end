@@ -1,5 +1,4 @@
 import { Document, Types } from "mongoose";
-import { IUser } from "./user";
 import { ITask } from "./task";
 
 export interface IProject extends Document {
@@ -13,9 +12,9 @@ export interface IProject extends Document {
         publicId: string;
         url: string;
     };
-    projectLeader: IUser;
+    projectLeader: Types.ObjectId;
     tags: string[];
-    developers: IUser[];
+    developers: Types.ObjectId[];
     tasks: ITask[];
     status: string;
     createdAt: string;

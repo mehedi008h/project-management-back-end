@@ -1,5 +1,7 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
 import { IUser } from "../domain/user";
 
 const UserSchema: Schema = new Schema(
@@ -80,6 +82,13 @@ UserSchema.pre<IUser>("save", async function (next: any) {
 // Compare user password
 UserSchema.methods.matchPassword = async function (password: string) {
     return await bcrypt.compare(password, this.password);
+};
+
+// Return JWT token
+UserSchema.methods.getSignedToken = function (password: string) {
+    return jwt.sign({ id: this._id }, process.env.JWT_SECRET!, {
+        expiresIn: process.env.JWT_EXPIRE,
+    });
 };
 
 export default model<IUser>("User", UserSchema);
