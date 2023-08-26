@@ -43,15 +43,19 @@ export const createProject = catchAsyncErrors(
 );
 
 // get all project => api/v1/project
+// permission => PROJECT_LEADER, DEVELOPER
 export const getAllProject = catchAsyncErrors(
-    async (req: Request, res: Response) => {
-        const projects = await Project.find();
+    async (req: ExpressRequest, res: Response) => {
+        // find specific developer project
+        const projects = await Project.find({
+            developers: req.user.id,
+        });
 
         res.status(Code.OK).send(
             new HttpResponse(
                 Code.OK,
                 Status.OK,
-                "Successfully get project",
+                "Successfully get projects",
                 projects
             )
         );
@@ -59,17 +63,21 @@ export const getAllProject = catchAsyncErrors(
 );
 
 // get project details by projectIdentifier => api/v1/project/projectIdentifier
+// permission => PROJECT_LEADER, DEVELOPER
 export const getProjectDetails = catchAsyncErrors(
-    async (req: Request, res: Response) => {
+    async (req: ExpressRequest, res: Response) => {
         const { projectIdentifier } = req.params;
         // check project existence
         const project = await checkProjectExists(projectIdentifier);
+
+        // check project developer
+        await checkProjectDeveloper(project, req.user.id);
 
         res.status(Code.OK).send(
             new HttpResponse(
                 Code.OK,
                 Status.OK,
-                "Successfully get project",
+                "Successfully get project details",
                 project
             )
         );
@@ -77,6 +85,7 @@ export const getProjectDetails = catchAsyncErrors(
 );
 
 // delete project by projectIdentifier => api/v1/project/projectIdentifier
+// permission => PROJECT_LEADER
 export const deleteProject = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
         const { projectIdentifier } = req.params;
@@ -96,6 +105,7 @@ export const deleteProject = catchAsyncErrors(
 );
 
 // update project => api/v1/project/update
+// permission => PROJECT_LEADER
 export const updateProject = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
         const {
@@ -168,6 +178,20 @@ export const checkProjectLeader = async (
     currentUserId: string
 ) => {
     if (projectLeaderId != currentUserId) {
+        throw new ErrorHandler({
+            statusCode: Code.UNAUTHORIZED,
+            httpStatus: Status.UNAUTHORIZED,
+            message: "You don't have permission to access this resources!!!",
+        });
+    }
+};
+
+// check project developer
+export const checkProjectDeveloper = async (
+    project: IProject,
+    currentUserId: string
+) => {
+    if (!project.developers.includes(currentUserId)) {
         throw new ErrorHandler({
             statusCode: Code.UNAUTHORIZED,
             httpStatus: Status.UNAUTHORIZED,

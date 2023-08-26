@@ -11,8 +11,10 @@ import { isAuthenticatedUser } from "../middlewares/auth";
 const projectRoutes = Router();
 
 projectRoutes.route("/").post(isAuthenticatedUser, createProject);
-projectRoutes.route("/").get(getAllProject);
-projectRoutes.route("/:projectIdentifier").get(getProjectDetails);
+projectRoutes.route("/").get(isAuthenticatedUser, getAllProject);
+projectRoutes
+    .route("/:projectIdentifier")
+    .get(isAuthenticatedUser, getProjectDetails);
 projectRoutes
     .route("/:projectIdentifier")
     .delete(isAuthenticatedUser, deleteProject);
