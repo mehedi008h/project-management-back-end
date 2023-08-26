@@ -82,17 +82,9 @@ export const deleteProject = catchAsyncErrors(
         const { projectIdentifier } = req.params;
         // check project existence
         const project = await checkProjectExists(projectIdentifier);
-        console.log("Project Leader: " + project.projectLeader);
-        console.log("Current User: " + req.user.id);
 
-        if (project.projectLeader != req.user.id) {
-            throw new ErrorHandler({
-                statusCode: Code.UNAUTHORIZED,
-                httpStatus: Status.UNAUTHORIZED,
-                message:
-                    "You don't have permission to access this resources!!!",
-            });
-        }
+        // check project leader
+        await checkProjectLeader(project.projectLeader, req.user.id);
 
         // delete project
         await project.deleteOne({ projectIdentifier });
@@ -105,9 +97,10 @@ export const deleteProject = catchAsyncErrors(
 
 // update project => api/v1/project/update
 export const updateProject = catchAsyncErrors(
-    async (req: Request, res: Response) => {
+    async (req: ExpressRequest, res: Response) => {
         const {
             id,
+            projectIdentifier,
             title,
             description,
             startDate,
@@ -116,8 +109,14 @@ export const updateProject = catchAsyncErrors(
             status,
         }: IProject = req.body;
 
+        // check project existence
+        const project = await checkProjectExists(projectIdentifier);
+
+        // check project leader
+        await checkProjectLeader(project.projectLeader, req.user.id);
+
         // project find by project id and update project
-        const project = await Project.updateOne(
+        const updateProject = await Project.updateOne(
             {
                 _id: id,
             },
@@ -142,7 +141,7 @@ export const updateProject = catchAsyncErrors(
                 Code.OK,
                 Status.OK,
                 "Project Update Successfully",
-                project
+                updateProject
             )
         );
     }
@@ -161,4 +160,18 @@ export const checkProjectExists = async (projectIdentifier: string) => {
     }
 
     return project;
+};
+
+// check project leader
+export const checkProjectLeader = async (
+    projectLeaderId: string,
+    currentUserId: string
+) => {
+    if (projectLeaderId != currentUserId) {
+        throw new ErrorHandler({
+            statusCode: Code.UNAUTHORIZED,
+            httpStatus: Status.UNAUTHORIZED,
+            message: "You don't have permission to access this resources!!!",
+        });
+    }
 };

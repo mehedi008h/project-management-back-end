@@ -12,9 +12,9 @@ export interface IProject extends Document {
         publicId: string;
         url: string;
     };
-    projectLeader: Types.ObjectId;
+    projectLeader: string;
     tags: string[];
-    developers: Types.ObjectId[];
+    developers: string[];
     tasks: ITask[];
     status: string;
     createdAt: string;

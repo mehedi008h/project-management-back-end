@@ -16,6 +16,6 @@ projectRoutes.route("/:projectIdentifier").get(getProjectDetails);
 projectRoutes
     .route("/:projectIdentifier")
     .delete(isAuthenticatedUser, deleteProject);
-projectRoutes.route("/update").put(updateProject);
+projectRoutes.route("/update").put(isAuthenticatedUser, updateProject);
 
 export default projectRoutes;
