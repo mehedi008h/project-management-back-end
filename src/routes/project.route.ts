@@ -3,6 +3,7 @@ import {
     assignDeveloper,
     createProject,
     deleteProject,
+    getAllAssignDeveloper,
     getAllProject,
     getProjectDetails,
     updateProject,
@@ -23,5 +24,8 @@ projectRoutes.route("/update").put(isAuthenticatedUser, updateProject);
 projectRoutes
     .route("/assign-developer/:projectIdentifier")
     .put(isAuthenticatedUser, assignDeveloper);
+projectRoutes
+    .route("/project-developer/:projectIdentifier")
+    .get(isAuthenticatedUser, getAllAssignDeveloper);
 
 export default projectRoutes;

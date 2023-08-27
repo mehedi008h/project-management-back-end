@@ -200,6 +200,31 @@ export const assignDeveloper = catchAsyncErrors(
     }
 );
 
+// get all assign developer => api/v1/project/project-developer/projectIdentifier
+// permission => PROJECT_LEADER, DEVELOPER
+export const getAllAssignDeveloper = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        const { projectIdentifier } = req.params;
+
+        // check project existence
+        const project = await checkProjectExists(projectIdentifier);
+
+        // get all project developer
+        const users = await User.find({
+            _id: project.developers,
+        });
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Get All Project Developer Successfully",
+                users
+            )
+        );
+    }
+);
+
 // check project existence
 export const checkProjectExists = async (projectIdentifier: string) => {
     // find project
