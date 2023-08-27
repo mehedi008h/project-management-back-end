@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { Code } from "../enum/code.enum";
 import { HttpResponse } from "../domain/response";
 import { Status } from "../enum/status.enum";
@@ -82,12 +82,17 @@ export const getAllTask = catchAsyncErrors(
 );
 
 // get task details => api/v1/task/projectIdentifier/taskIdentifier
+// permission => PROJECT_LEADER, TASK_DEVELOPER
 export const getTaskDetails = catchAsyncErrors(
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: ExpressRequest, res: Response, next: NextFunction) => {
         const { projectIdentifier, taskIdentifier } = req.params;
 
-        // find task in project
-        const task = await checkTaskExists(taskIdentifier, projectIdentifier);
+        // check task authorization -> project leader and developer
+        const task = await checkTaskAuthorization(
+            projectIdentifier,
+            taskIdentifier,
+            req.user.id
+        );
 
         res.status(Code.OK).send(
             new HttpResponse(Code.OK, Status.OK, "Get task details", task)
@@ -96,8 +101,9 @@ export const getTaskDetails = catchAsyncErrors(
 );
 
 // update task => api/v1/task/projectIdentifier/update
+// permission => PROJECT_LEADER
 export const updateTask = catchAsyncErrors(
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: ExpressRequest, res: Response, next: NextFunction) => {
         const { projectIdentifier } = req.params;
         const {
             id,
@@ -111,7 +117,13 @@ export const updateTask = catchAsyncErrors(
         }: ITask = req.body;
 
         // find task in project
-        const task = await checkTaskExists(taskIdentifier, projectIdentifier);
+        const { project } = await checkTaskExists(
+            taskIdentifier,
+            projectIdentifier
+        );
+
+        // check project leader for update
+        await checkProjectLeader(project.projectLeader, req.user.id);
 
         // update task
         const updateTask = await Task.updateOne(
@@ -142,12 +154,19 @@ export const updateTask = catchAsyncErrors(
 );
 
 // delete task by taskIdentifier => api/v1/task/projectIdentifier/taskIdentifier
+// permission => PROJECT_LEADER
 export const deleteTask = catchAsyncErrors(
-    async (req: Request, res: Response) => {
+    async (req: ExpressRequest, res: Response) => {
         const { projectIdentifier, taskIdentifier } = req.params;
 
         // find task in project
-        const task = await checkTaskExists(taskIdentifier, projectIdentifier);
+        const { project, task } = await checkTaskExists(
+            taskIdentifier,
+            projectIdentifier
+        );
+
+        // check project leader for delete
+        await checkProjectLeader(project.projectLeader, req.user.id);
 
         // delete task
         await task.deleteOne({ taskIdentifier });
@@ -188,5 +207,27 @@ export const checkTaskExists = async (
         });
     }
 
-    return task;
+    return { project, task };
+};
+
+// check task authorization
+export const checkTaskAuthorization = async (
+    projectIdentifier: string,
+    taskIdentifier: string,
+    userId: string
+) => {
+    const { project, task } = await checkTaskExists(
+        taskIdentifier,
+        projectIdentifier
+    );
+
+    if (task?.developer == userId || project.projectLeader == userId) {
+        return task;
+    } else {
+        throw new ErrorHandler({
+            statusCode: Code.NOT_FOUND,
+            httpStatus: Status.NOT_FOUND,
+            message: "You don't have permission to access this resources!!!",
+        });
+    }
 };
