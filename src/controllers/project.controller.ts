@@ -4,10 +4,13 @@ import { HttpResponse } from "../domain/response";
 import { Status } from "../enum/status.enum";
 import { IProject } from "../domain/project";
 import Project from "../models/project.model";
+import User from "../models/user.model";
 import { randomId } from "../utils/randomId";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors";
 import { ErrorHandler } from "../utils/errorHandler";
 import { ExpressRequest } from "../domain/expressRequest.interface";
+import { IUser } from "../domain/user";
+import { checkUserExists } from "./user.controller";
 
 // create new project => api/v1/project
 export const createProject = catchAsyncErrors(
@@ -151,6 +154,46 @@ export const updateProject = catchAsyncErrors(
                 Code.OK,
                 Status.OK,
                 "Project Update Successfully",
+                updateProject
+            )
+        );
+    }
+);
+
+// assign developer => api/v1/project/assign-developer/projectIdentifier
+// permission => PROJECT_LEADER
+export const assignDeveloper = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        const { projectIdentifier } = req.params;
+
+        const { id }: IUser = req.body;
+
+        // check project existence
+        const project = await checkProjectExists(projectIdentifier);
+
+        // check project leader
+        await checkProjectLeader(project.projectLeader, req.user.id);
+
+        // check user existence
+        const user = await checkUserExists(id);
+
+        // find by project id and assign developer to project
+        const updateProject = await Project.updateOne(
+            {
+                _id: project.id,
+            },
+            {
+                $addToSet: {
+                    developers: [user.id],
+                },
+            }
+        );
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Assign Developer Successfully",
                 updateProject
             )
         );

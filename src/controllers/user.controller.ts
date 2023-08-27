@@ -7,7 +7,6 @@ import { HttpResponse } from "../domain/response";
 import User from "../models/user.model";
 import { IUser } from "../domain/user";
 import { ErrorHandler } from "../utils/errorHandler";
-import { request } from "http";
 
 // get all user => api/v1/user
 export const getAllUsers = catchAsyncErrors(
