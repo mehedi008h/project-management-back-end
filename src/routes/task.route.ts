@@ -13,13 +13,11 @@ const taskRoutes = Router();
 taskRoutes.route("/:projectIdentifier").post(isAuthenticatedUser, assignTasks);
 taskRoutes.route("/:projectIdentifier").get(isAuthenticatedUser, getAllTask);
 taskRoutes
-    .route("/:projectIdentifier/:taskIdentifier")
+    .route("/details/:taskIdentifier")
     .get(isAuthenticatedUser, getTaskDetails);
+taskRoutes.route("/update").put(isAuthenticatedUser, updateTask);
 taskRoutes
-    .route("/:projectIdentifier/update")
-    .put(isAuthenticatedUser, updateTask);
-taskRoutes
-    .route("/:projectIdentifier/:taskIdentifier")
+    .route("/delete/:taskIdentifier")
     .delete(isAuthenticatedUser, deleteTask);
 
 export default taskRoutes;

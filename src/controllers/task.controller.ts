@@ -58,7 +58,38 @@ export const assignTasks = catchAsyncErrors(
     }
 );
 
-// get all task of a project => api/v1/task
+// change task statis => api/v1/task/change-status/taskIdentifier
+// permission => TASK_DEVELOPER
+export const changeTaskStatus = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        const { taskIdentifier } = req.params;
+        const { status }: ITask = req.body;
+
+        // change task status
+        const task = await Task.updateOne(
+            {
+                taskIdentifier,
+                developer: req.user.id,
+            },
+            {
+                $addToSet: {
+                    status,
+                },
+            }
+        );
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Update Task Status Successfully",
+                task
+            )
+        );
+    }
+);
+
+// get all task of a project => api/v1/task/projectIdentifier
 // permission => PROJECT_LEADER, DEVELOPER
 export const getAllTask = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, next: NextFunction) => {
@@ -81,18 +112,14 @@ export const getAllTask = catchAsyncErrors(
     }
 );
 
-// get task details => api/v1/task/projectIdentifier/taskIdentifier
+// get task details => api/v1/task/taskIdentifier
 // permission => PROJECT_LEADER, TASK_DEVELOPER
 export const getTaskDetails = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, next: NextFunction) => {
-        const { projectIdentifier, taskIdentifier } = req.params;
+        const { taskIdentifier } = req.params;
 
         // check task authorization -> project leader and developer
-        const task = await checkTaskAuthorization(
-            projectIdentifier,
-            taskIdentifier,
-            req.user.id
-        );
+        const task = await checkTaskAuthorization(taskIdentifier, req.user.id);
 
         res.status(Code.OK).send(
             new HttpResponse(Code.OK, Status.OK, "Get task details", task)
@@ -100,11 +127,10 @@ export const getTaskDetails = catchAsyncErrors(
     }
 );
 
-// update task => api/v1/task/projectIdentifier/update
+// update task => api/v1/task/update
 // permission => PROJECT_LEADER
 export const updateTask = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, next: NextFunction) => {
-        const { projectIdentifier } = req.params;
         const {
             id,
             taskIdentifier,
@@ -117,10 +143,7 @@ export const updateTask = catchAsyncErrors(
         }: ITask = req.body;
 
         // find task in project
-        const { project } = await checkTaskExists(
-            taskIdentifier,
-            projectIdentifier
-        );
+        const { project } = await checkTaskExists(taskIdentifier);
 
         // check project leader for update
         await checkProjectLeader(project.projectLeader, req.user.id);
@@ -153,17 +176,14 @@ export const updateTask = catchAsyncErrors(
     }
 );
 
-// delete task by taskIdentifier => api/v1/task/projectIdentifier/taskIdentifier
+// delete task by taskIdentifier => api/v1/task/taskIdentifier
 // permission => PROJECT_LEADER
 export const deleteTask = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const { projectIdentifier, taskIdentifier } = req.params;
+        const { taskIdentifier } = req.params;
 
         // find task in project
-        const { project, task } = await checkTaskExists(
-            taskIdentifier,
-            projectIdentifier
-        );
+        const { project, task } = await checkTaskExists(taskIdentifier);
 
         // check project leader for delete
         await checkProjectLeader(project.projectLeader, req.user.id);
@@ -178,12 +198,7 @@ export const deleteTask = catchAsyncErrors(
 );
 
 // check task existence in project
-export const checkTaskExists = async (
-    taskIdentifier: string,
-    projectIdentifier: string
-) => {
-    // check project existence
-    const project = await checkProjectExists(projectIdentifier);
+export const checkTaskExists = async (taskIdentifier: string) => {
     // find task
     const task = await Task.findOne({
         taskIdentifier,
@@ -197,6 +212,9 @@ export const checkTaskExists = async (
             message: "Task you are looking for does not exist!!!",
         });
     }
+
+    // check project existence
+    const project = await checkProjectExists(task.projectIdentifier);
 
     // check task exists in the project
     if (task?.projectIdentifier !== project.projectIdentifier) {
@@ -212,14 +230,10 @@ export const checkTaskExists = async (
 
 // check task authorization
 export const checkTaskAuthorization = async (
-    projectIdentifier: string,
     taskIdentifier: string,
     userId: string
 ) => {
-    const { project, task } = await checkTaskExists(
-        taskIdentifier,
-        projectIdentifier
-    );
+    const { project, task } = await checkTaskExists(taskIdentifier);
 
     if (task?.developer == userId || project.projectLeader == userId) {
         return task;
