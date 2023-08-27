@@ -200,6 +200,46 @@ export const assignDeveloper = catchAsyncErrors(
     }
 );
 
+// remove assign developer => api/v1/project/remove-developer/projectIdentifier
+// permission => PROJECT_LEADER
+export const removeAssignDeveloper = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        const { projectIdentifier } = req.params;
+
+        const { id }: IUser = req.body;
+
+        // check project existence
+        const project = await checkProjectExists(projectIdentifier);
+
+        // check project leader
+        await checkProjectLeader(project.projectLeader, req.user.id);
+
+        // check user existence
+        const user = await checkUserExists(id);
+
+        // find by project id and remove assign developer to project
+        const updateProject = await Project.updateOne(
+            {
+                _id: project.id,
+            },
+            {
+                $pull: {
+                    developers: user.id,
+                },
+            }
+        );
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Remove Assign Developer Successfully",
+                updateProject
+            )
+        );
+    }
+);
+
 // get all assign developer => api/v1/project/project-developer/projectIdentifier
 // permission => PROJECT_LEADER, DEVELOPER
 export const getAllAssignDeveloper = catchAsyncErrors(
@@ -220,6 +260,29 @@ export const getAllAssignDeveloper = catchAsyncErrors(
                 Status.OK,
                 "Get All Project Developer Successfully",
                 users
+            )
+        );
+    }
+);
+
+// check assign developer => api/v1/project/check-developer/projectIdentifier
+// permission => PROJECT_LEADER, DEVELOPER
+export const checkAssignDeveloper = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        const { id }: IUser = req.body;
+        const { projectIdentifier } = req.params;
+
+        // check project existence
+        const project = await checkProjectExists(projectIdentifier);
+
+        const assign = project.developers.includes(id);
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Already assign this developer to project",
+                assign
             )
         );
     }

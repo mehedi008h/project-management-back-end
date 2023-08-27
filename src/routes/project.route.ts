@@ -6,6 +6,7 @@ import {
     getAllAssignDeveloper,
     getAllProject,
     getProjectDetails,
+    removeAssignDeveloper,
     updateProject,
 } from "../controllers/project.controller";
 import { isAuthenticatedUser } from "../middlewares/auth";
@@ -24,6 +25,9 @@ projectRoutes.route("/update").put(isAuthenticatedUser, updateProject);
 projectRoutes
     .route("/assign-developer/:projectIdentifier")
     .put(isAuthenticatedUser, assignDeveloper);
+projectRoutes
+    .route("/remove-developer/:projectIdentifier")
+    .put(isAuthenticatedUser, removeAssignDeveloper);
 projectRoutes
     .route("/project-developer/:projectIdentifier")
     .get(isAuthenticatedUser, getAllAssignDeveloper);
