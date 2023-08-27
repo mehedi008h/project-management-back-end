@@ -29,6 +29,16 @@ const TaskSchema: Schema = new Schema(
         },
         status: { type: String, default: "Todo" },
         tags: [],
+        developer: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: [true, "Please assign a Developer!!!"],
+        },
+        assigned: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
         projectIdentifier: {
             type: String,
             required: true,

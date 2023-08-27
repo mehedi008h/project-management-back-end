@@ -12,5 +12,6 @@ export interface ITask extends Document {
     tags: string[];
     projectIdentifier: string;
     developer: string;
+    assigned: string;
     createdAt: string;
 }

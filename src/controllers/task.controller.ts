@@ -6,18 +6,33 @@ import { ITask } from "../domain/task";
 import Task from "../models/task.model";
 import { randomId } from "../utils/randomId";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors";
-import { checkProjectExists } from "./project.controller";
+import {
+    checkProjectDeveloper,
+    checkProjectExists,
+    checkProjectLeader,
+} from "./project.controller";
 import { ErrorHandler } from "../utils/errorHandler";
+import { ExpressRequest } from "../domain/expressRequest.interface";
 
-// assign new task => api/v1/task
+// assign new task => api/v1/task/projectIdentifier
+// permission => PROJECT_LEADER
 export const assignTasks = catchAsyncErrors(
-    async (req: Request, res: Response) => {
+    async (req: ExpressRequest, res: Response) => {
         const { projectIdentifier } = req.params;
-        const { title, description, startDate, endDate, tags }: ITask =
-            req.body;
+        const {
+            title,
+            description,
+            startDate,
+            endDate,
+            tags,
+            developer,
+        }: ITask = req.body;
 
         // find project
         const project = await checkProjectExists(projectIdentifier);
+
+        // check project leader
+        await checkProjectLeader(project.projectLeader, req.user.id);
 
         // assign new task
         const task = await Task.create({
@@ -27,6 +42,8 @@ export const assignTasks = catchAsyncErrors(
             startDate,
             endDate,
             tags,
+            developer,
+            assigned: req.user.id,
             projectIdentifier: project.projectIdentifier,
         });
 
@@ -42,12 +59,16 @@ export const assignTasks = catchAsyncErrors(
 );
 
 // get all task of a project => api/v1/task
+// permission => PROJECT_LEADER, DEVELOPER
 export const getAllTask = catchAsyncErrors(
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: ExpressRequest, res: Response, next: NextFunction) => {
         const { projectIdentifier } = req.params;
 
         // find project
         const project = await checkProjectExists(projectIdentifier);
+
+        // check project developer
+        await checkProjectDeveloper(project, req.user.id);
 
         // find all project task
         const tasks = await Task.find({
