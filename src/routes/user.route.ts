@@ -6,6 +6,7 @@ import {
     getAllTeamMates,
     getAllUsers,
     sendInvitation,
+    unsendInvitation,
 } from "../controllers/user.controller";
 import { isAuthenticatedUser } from "../middlewares/auth";
 
@@ -21,5 +22,8 @@ userRoutes
     .route("/accept-invitation")
     .put(isAuthenticatedUser, acceptInvitation);
 userRoutes.route("/team-mates").get(isAuthenticatedUser, getAllTeamMates);
+userRoutes
+    .route("/unsend-invitation")
+    .put(isAuthenticatedUser, unsendInvitation);
 
 export default userRoutes;
