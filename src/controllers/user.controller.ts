@@ -150,6 +150,28 @@ export const acceptInvitation = catchAsyncErrors(
     }
 );
 
+// get all teamMates => api/v1/user/team-mates
+export const getAllTeamMates = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        // find current user
+        const currentUser = await checkUserExists(req.user.id);
+
+        // find all team mate of current user
+        const users = await User.find({
+            _id: currentUser.teamMates,
+        });
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Get All Team mate Successfully",
+                users
+            )
+        );
+    }
+);
+
 // check user existence
 export const checkUserExists = async (userId: string) => {
     // find user

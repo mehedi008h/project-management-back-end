@@ -3,6 +3,7 @@ import {
     acceptInvitation,
     checkSendInvitation,
     getAllInvitation,
+    getAllTeamMates,
     getAllUsers,
     sendInvitation,
 } from "../controllers/user.controller";
@@ -19,5 +20,6 @@ userRoutes
 userRoutes
     .route("/accept-invitation")
     .put(isAuthenticatedUser, acceptInvitation);
+userRoutes.route("/team-mates").get(isAuthenticatedUser, getAllTeamMates);
 
 export default userRoutes;
