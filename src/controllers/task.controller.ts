@@ -58,12 +58,15 @@ export const assignTasks = catchAsyncErrors(
     }
 );
 
-// change task statis => api/v1/task/change-status/taskIdentifier
+// change task status => api/v1/task/change-status/taskIdentifier
 // permission => TASK_DEVELOPER
 export const changeTaskStatus = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
         const { taskIdentifier } = req.params;
         const { status }: ITask = req.body;
+
+        // check permissions to change task status
+        await checkTaskDeveloper(taskIdentifier, req.user.id);
 
         // change task status
         const task = await Task.updateOne(
@@ -72,7 +75,7 @@ export const changeTaskStatus = catchAsyncErrors(
                 developer: req.user.id,
             },
             {
-                $addToSet: {
+                $set: {
                     status,
                 },
             }
@@ -98,7 +101,7 @@ export const getAllTask = catchAsyncErrors(
         // find project
         const project = await checkProjectExists(projectIdentifier);
 
-        // check project developer
+        // check permissions to get tasks
         await checkProjectDeveloper(project, req.user.id);
 
         // find all project task
@@ -143,7 +146,7 @@ export const updateTask = catchAsyncErrors(
         }: ITask = req.body;
 
         // find task in project
-        const { project } = await checkTaskExists(taskIdentifier);
+        const { project } = await checkTaskExistsInProject(taskIdentifier);
 
         // check project leader for update
         await checkProjectLeader(project.projectLeader, req.user.id);
@@ -183,7 +186,9 @@ export const deleteTask = catchAsyncErrors(
         const { taskIdentifier } = req.params;
 
         // find task in project
-        const { project, task } = await checkTaskExists(taskIdentifier);
+        const { project, task } = await checkTaskExistsInProject(
+            taskIdentifier
+        );
 
         // check project leader for delete
         await checkProjectLeader(project.projectLeader, req.user.id);
@@ -198,6 +203,44 @@ export const deleteTask = catchAsyncErrors(
 );
 
 // check task existence in project
+export const checkTaskExistsInProject = async (taskIdentifier: string) => {
+    // check task existence
+    const task = await checkTaskExists(taskIdentifier);
+
+    // check project existence
+    const project = await checkProjectExists(task.projectIdentifier);
+
+    // check task exists in the project
+    if (task?.projectIdentifier !== project.projectIdentifier) {
+        throw new ErrorHandler({
+            statusCode: Code.NOT_FOUND,
+            httpStatus: Status.NOT_FOUND,
+            message: "Task does not exist in this project!!!",
+        });
+    }
+
+    return { project, task };
+};
+
+// check task authorization
+export const checkTaskAuthorization = async (
+    taskIdentifier: string,
+    userId: string
+) => {
+    const { project, task } = await checkTaskExistsInProject(taskIdentifier);
+
+    if (task?.developer == userId || project.projectLeader == userId) {
+        return task;
+    } else {
+        throw new ErrorHandler({
+            statusCode: Code.BAD_REQUEST,
+            httpStatus: Status.BAD_REQUEST,
+            message: "You don't have permission to access this resources!!!",
+        });
+    }
+};
+
+// check task exists
 export const checkTaskExists = async (taskIdentifier: string) => {
     // find task
     const task = await Task.findOne({
@@ -213,34 +256,20 @@ export const checkTaskExists = async (taskIdentifier: string) => {
         });
     }
 
-    // check project existence
-    const project = await checkProjectExists(task.projectIdentifier);
-
-    // check task exists in the project
-    if (task?.projectIdentifier !== project.projectIdentifier) {
-        throw new ErrorHandler({
-            statusCode: Code.BAD_REQUEST,
-            httpStatus: Status.BAD_REQUEST,
-            message: "Task does not exist in this project!!!",
-        });
-    }
-
-    return { project, task };
+    return task;
 };
 
-// check task authorization
-export const checkTaskAuthorization = async (
+// check task developer permissions
+export const checkTaskDeveloper = async (
     taskIdentifier: string,
     userId: string
 ) => {
-    const { project, task } = await checkTaskExists(taskIdentifier);
+    const task = await checkTaskExists(taskIdentifier);
 
-    if (task?.developer == userId || project.projectLeader == userId) {
-        return task;
-    } else {
+    if (task.developer != userId) {
         throw new ErrorHandler({
-            statusCode: Code.NOT_FOUND,
-            httpStatus: Status.NOT_FOUND,
+            statusCode: Code.BAD_REQUEST,
+            httpStatus: Status.BAD_REQUEST,
             message: "You don't have permission to access this resources!!!",
         });
     }

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     assignTasks,
+    changeTaskStatus,
     deleteTask,
     getAllTask,
     getTaskDetails,
@@ -19,5 +20,8 @@ taskRoutes.route("/update").put(isAuthenticatedUser, updateTask);
 taskRoutes
     .route("/delete/:taskIdentifier")
     .delete(isAuthenticatedUser, deleteTask);
+taskRoutes
+    .route("/change-status/:taskIdentifier")
+    .put(isAuthenticatedUser, changeTaskStatus);
 
 export default taskRoutes;

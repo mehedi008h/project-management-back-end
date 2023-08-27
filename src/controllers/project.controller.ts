@@ -65,6 +65,40 @@ export const getAllProject = catchAsyncErrors(
     }
 );
 
+// change project status => api/v1/project/change-status/projectIdentifier
+// permission => PROJECT_LEADER
+export const changeProjectStatus = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        const { projectIdentifier } = req.params;
+        const { status }: IProject = req.body;
+
+        // check permissions to change project status
+        await checkProjectLeader(projectIdentifier, req.user.id);
+
+        // change project status
+        const project = await Project.updateOne(
+            {
+                projectIdentifier,
+                projectLeader: req.user.id,
+            },
+            {
+                $set: {
+                    status,
+                },
+            }
+        );
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Update Project Status Successfully",
+                project
+            )
+        );
+    }
+);
+
 // get project details by projectIdentifier => api/v1/project/projectIdentifier
 // permission => PROJECT_LEADER, DEVELOPER
 export const getProjectDetails = catchAsyncErrors(

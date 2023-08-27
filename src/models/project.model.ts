@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 import { IProject } from "../domain/project";
+import { ProjectStatus } from "../enum/projectStatus.enum";
 
 const ProjectSchema: Schema = new Schema(
     {
@@ -45,7 +46,14 @@ const ProjectSchema: Schema = new Schema(
                 required: true,
             },
         ],
-        status: { type: String, default: "Todo" },
+        status: {
+            type: String,
+            default: ProjectStatus.TODO,
+            enum: {
+                values: ["Todo", "Progress", "Completed"],
+                message: "Please select correct status for project",
+            },
+        },
         tags: [],
         createdAt: {
             type: Date,

@@ -1,5 +1,7 @@
 import { Schema, model } from "mongoose";
 import { ITask } from "../domain/task";
+import { Priority } from "../enum/priority.enum";
+import { ProjectStatus } from "../enum/projectStatus.enum";
 
 const TaskSchema: Schema = new Schema(
     {
@@ -25,9 +27,20 @@ const TaskSchema: Schema = new Schema(
         },
         priority: {
             type: String,
-            default: "Low",
+            default: Priority.LOW,
+            enum: {
+                values: ["Low", "Medium", "High"],
+                message: "Please select correct priority for task",
+            },
         },
-        status: { type: String, default: "Todo" },
+        status: {
+            type: String,
+            default: ProjectStatus.TODO,
+            enum: {
+                values: ["Todo", "Progress", "Completed"],
+                message: "Please select correct status for task",
+            },
+        },
         tags: [],
         developer: {
             type: Schema.Types.ObjectId,

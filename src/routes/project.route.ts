@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     assignDeveloper,
+    changeProjectStatus,
     createProject,
     deleteProject,
     getAllAssignDeveloper,
@@ -31,5 +32,8 @@ projectRoutes
 projectRoutes
     .route("/project-developer/:projectIdentifier")
     .get(isAuthenticatedUser, getAllAssignDeveloper);
+projectRoutes
+    .route("/change-status/:projectIdentifier")
+    .put(isAuthenticatedUser, changeProjectStatus);
 
 export default projectRoutes;
