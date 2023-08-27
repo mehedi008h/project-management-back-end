@@ -202,7 +202,46 @@ export const unsendInvitation = catchAsyncErrors(
     }
 );
 
-// TODO: remove from team members
+// remove team mate invitation => api/v1/user/remove-team-mate
+export const removeTeamMate = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        const { id }: IUser = req.body;
+        // find current user
+        const currentUser = await checkUserExists(req.user.id);
+
+        // check invitation user exists
+        const existsUser = await checkUserExists(id);
+
+        // update team members current user
+        const updateCurrentUser = await User.updateOne(
+            { _id: req.user.id },
+            {
+                $pull: {
+                    teamMates: id,
+                },
+            }
+        );
+
+        // update and remove team mate
+        const updateExistsUser = await User.updateOne(
+            { _id: id },
+            {
+                $pull: {
+                    teamMates: req.user.id,
+                },
+            }
+        );
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Remove Team Mate Successfully",
+                updateCurrentUser
+            )
+        );
+    }
+);
 
 // check user existence
 export const checkUserExists = async (userId: string) => {
