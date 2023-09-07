@@ -115,7 +115,7 @@ export const getAllTask = catchAsyncErrors(
     }
 );
 
-// get task details => api/v1/task/taskIdentifier
+// get task details => api/v1/task/details/taskIdentifier
 // permission => PROJECT_LEADER, TASK_DEVELOPER
 export const getTaskDetails = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, next: NextFunction) => {
@@ -135,7 +135,7 @@ export const getTaskDetails = catchAsyncErrors(
 export const updateTask = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, next: NextFunction) => {
         const {
-            id,
+            _id,
             taskIdentifier,
             title,
             description,
@@ -154,7 +154,7 @@ export const updateTask = catchAsyncErrors(
         // update task
         const updateTask = await Task.updateOne(
             {
-                _id: id,
+                _id: _id,
             },
             {
                 $set: {

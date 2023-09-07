@@ -48,7 +48,7 @@ const UserSchema: Schema = new Schema(
         description: {
             type: String,
         },
-        avatar: {
+        photo: {
             public_id: {
                 type: String,
             },
@@ -59,6 +59,7 @@ const UserSchema: Schema = new Schema(
         work: {
             type: String,
         },
+        skills: [],
         invitations: [
             {
                 type: Schema.Types.ObjectId,

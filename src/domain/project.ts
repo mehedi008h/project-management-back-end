@@ -1,14 +1,14 @@
 import { Document, Types } from "mongoose";
 
 export interface IProject extends Document {
-    id: Types.ObjectId;
+    _id: string;
     title: string;
     projectIdentifier: string;
     description: string;
     startDate: string;
     endDate: string;
     photo: {
-        publicId: string;
+        public_id: string;
         url: string;
     };
     projectLeader: string;

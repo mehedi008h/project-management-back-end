@@ -19,7 +19,8 @@ export const isAuthenticatedUser = async (
             new HttpResponse(
                 Code.UNAUTHORIZED,
                 Status.UNAUTHORIZED,
-                "Login first to access this resource!"
+                "Login first to access this resource!",
+                null
             )
         );
     }

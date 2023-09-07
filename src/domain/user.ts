@@ -1,7 +1,7 @@
-import { Document, Types } from "mongoose";
+import { Document } from "mongoose";
 
 export interface IUser extends Document {
-    id: string;
+    _id: string;
     firstName: string;
     lastName: string;
     username: string;
@@ -12,10 +12,11 @@ export interface IUser extends Document {
     description: string;
     diamond: number;
     photo: {
-        publicId: string;
+        public_id: string;
         url: string;
     };
     work: string;
+    skills: string[];
     active: true;
     invitations: string[];
     teamMates: string[];

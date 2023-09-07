@@ -77,7 +77,7 @@ export const loginUser = catchAsyncErrors(
             );
         }
 
-        sendToken(user, 200, res);
+        sendToken(user, Code.OK, res);
     }
 );
 
@@ -89,6 +89,20 @@ export const loggedInUser = catchAsyncErrors(
 
         res.status(Code.OK).send(
             new HttpResponse(Code.OK, Status.OK, "Get User Successfully", user)
+        );
+    }
+);
+
+// get currently authenticated user
+export const logout = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response, next: NextFunction) => {
+        res.cookie("token", null, {
+            expires: new Date(Date.now()),
+            httpOnly: true,
+        });
+
+        res.status(Code.OK).send(
+            new HttpResponse(Code.OK, Status.OK, "Logout Successfully")
         );
     }
 );

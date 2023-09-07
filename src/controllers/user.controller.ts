@@ -1,4 +1,5 @@
 import { Response } from "express";
+const cloudinary = require("cloudinary");
 import { ExpressRequest } from "../domain/expressRequest.interface";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors";
 import { Code } from "../enum/code.enum";
@@ -26,20 +27,93 @@ export const getAllUsers = catchAsyncErrors(
     }
 );
 
+// get  user details => api/v1/user/id
+export const getUserDetails = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        const { id } = req.params;
+        // get all active users
+        const user = await checkUserExists(id);
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Get user details Successfully",
+                user
+            )
+        );
+    }
+);
+
+// update user => api/v1/user/update
+export const updateUser = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        // check user existence
+        const user = await checkUserExists(req.user.id);
+
+        const newUserData = {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            phone: req.body.phone,
+            description: req.body.description,
+            work: req.body.work,
+            address: req.body.address,
+            skills: req.body.skills,
+        } as IUser;
+
+        // destory existing user photo
+        if (req.body.photo) {
+            const image_id = user.photo.public_id;
+            const res = await cloudinary.v2.uploader.destroy(image_id);
+
+            // upload new user photo to cloudinary
+            const result = await cloudinary.v2.uploader.upload(req.body.photo, {
+                folder: "genious/avatar",
+                width: 150,
+                crop: "scale",
+            });
+
+            newUserData.photo = {
+                public_id: result.public_id,
+                url: result.secure_url,
+            };
+        }
+
+        // user find by user id and update user
+        const updateUser = await User.findByIdAndUpdate(
+            req.user.id,
+            newUserData,
+            {
+                new: true,
+                runValidators: true,
+                useFindAndModify: false,
+            }
+        );
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "User Update Successfully",
+                updateUser
+            )
+        );
+    }
+);
+
 // send invitation => api/v1/user/send-invitation
 export const sendInvitation = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const { id }: IUser = req.body;
+        const { _id }: IUser = req.body;
         // find current user
         const currentUser = await checkUserExists(req.user.id);
 
         // check invitation user exists
-        await checkUserExists(id);
+        await checkUserExists(_id);
 
         // find invitation user and send invitation
         const user = await User.updateOne(
             {
-                _id: id,
+                _id: _id,
             },
             {
                 $addToSet: {
@@ -108,29 +182,29 @@ export const checkSendInvitation = catchAsyncErrors(
 // accept invitation => api/v1/user/accept-invitation
 export const acceptInvitation = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const { id }: IUser = req.body;
+        const { _id }: IUser = req.body;
         // find current user
         const currentUser = await checkUserExists(req.user.id);
 
         // check invitation user exists
-        const existsUser = await checkUserExists(id);
+        const existsUser = await checkUserExists(_id);
 
         // update team members current user
         const updateCurrentUser = await User.updateOne(
             { _id: req.user.id },
             {
                 $addToSet: {
-                    teamMates: [id],
+                    teamMates: [_id],
                 },
                 $pull: {
-                    invitations: id,
+                    invitations: _id,
                 },
             }
         );
 
         // update team members invitation send user
         const updateExistsUser = await User.updateOne(
-            { _id: id },
+            { _id: _id },
             {
                 $addToSet: {
                     teamMates: [req.user.id],
@@ -174,16 +248,16 @@ export const getAllTeamMates = catchAsyncErrors(
 // unsend invitation => api/v1/user/unsend-invitation
 export const unsendInvitation = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const { id }: IUser = req.body;
+        const { _id }: IUser = req.body;
         // find current user
         const currentUser = await checkUserExists(req.user.id);
 
         // check invitation user exists
-        const existsUser = await checkUserExists(id);
+        const existsUser = await checkUserExists(_id);
 
         // update and remove invitation
         const updateExistsUser = await User.updateOne(
-            { _id: id },
+            { _id: _id },
             {
                 $pull: {
                     invitations: req.user.id,
@@ -205,26 +279,26 @@ export const unsendInvitation = catchAsyncErrors(
 // remove team mate invitation => api/v1/user/remove-team-mate
 export const removeTeamMate = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const { id }: IUser = req.body;
+        const { _id }: IUser = req.body;
         // find current user
         const currentUser = await checkUserExists(req.user.id);
 
         // check invitation user exists
-        const existsUser = await checkUserExists(id);
+        const existsUser = await checkUserExists(_id);
 
         // update team members current user
         const updateCurrentUser = await User.updateOne(
             { _id: req.user.id },
             {
                 $pull: {
-                    teamMates: id,
+                    teamMates: _id,
                 },
             }
         );
 
         // update and remove team mate
         const updateExistsUser = await User.updateOne(
-            { _id: id },
+            { _id: _id },
             {
                 $pull: {
                     teamMates: req.user.id,

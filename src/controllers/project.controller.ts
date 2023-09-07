@@ -1,4 +1,5 @@
 import { Response } from "express";
+const cloudinary = require("cloudinary");
 import { Code } from "../enum/code.enum";
 import { HttpResponse } from "../domain/response";
 import { Status } from "../enum/status.enum";
@@ -18,6 +19,12 @@ export const createProject = catchAsyncErrors(
         const { title, description, startDate, endDate, tags }: IProject =
             req.body;
 
+             // upload new project photo to cloudinary
+            const result = await cloudinary.v2.uploader.upload(req.body.photo, {
+                folder: "genious/projects",
+               
+            });
+
         const project = await Project.create({
             title,
             description,
@@ -25,10 +32,9 @@ export const createProject = catchAsyncErrors(
             startDate,
             endDate,
             projectIdentifier: randomId(10),
-            // TODO: implement cloudinary
             photo: {
-                public_id: "result.public_id",
-                url: "result.secure_url",
+                public_id: result.public_id,
+                url: result.secure_url,
             },
             projectLeader: req.user.id,
             developers: [req.user.id],
@@ -145,41 +151,46 @@ export const deleteProject = catchAsyncErrors(
 // permission => PROJECT_LEADER
 export const updateProject = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const {
-            id,
-            projectIdentifier,
-            title,
-            description,
-            startDate,
-            endDate,
-            tags,
-            status,
-        }: IProject = req.body;
 
         // check project existence
-        const project = await checkProjectExists(projectIdentifier);
+        const project = await checkProjectExists(req.body.projectIdentifier);
 
         // check project leader
         await checkProjectLeader(project.projectLeader, req.user.id);
 
+        const newProjectData = {
+            title:req.body.title,
+            description:req.body.description,
+            startDate:req.body.startDate,
+            endDate:req.body.endDate,
+            tags:req.body.tags,
+            status:req.body.status,
+        }as IProject;
+
+         // destory existing project photo
+        if (req.body.photo) {
+            const image_id = project.photo.public_id;
+            const res = await cloudinary.v2.uploader.destroy(image_id);
+
+            // upload new user photo to cloudinary
+            const result = await cloudinary.v2.uploader.upload(req.body.photo, {
+                folder: "genious/projects",
+            });
+
+            newProjectData.photo = {
+                public_id: result.public_id,
+                url: result.secure_url,
+            };
+        }
+
         // project find by project id and update project
-        const updateProject = await Project.updateOne(
+        const updateProject = await Project.findByIdAndUpdate(
+            req.body._id,
+            newProjectData,
             {
-                _id: id,
-            },
-            {
-                $set: {
-                    title,
-                    description,
-                    tags,
-                    startDate,
-                    endDate,
-                    status,
-                    photo: {
-                        public_id: "result.public_id",
-                        url: "result.secure_url",
-                    },
-                },
+                new: true,
+                runValidators: true,
+                useFindAndModify: false,
             }
         );
 
@@ -200,7 +211,7 @@ export const assignDeveloper = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
         const { projectIdentifier } = req.params;
 
-        const { id }: IUser = req.body;
+        const { _id }: IUser = req.body;
 
         // check project existence
         const project = await checkProjectExists(projectIdentifier);
@@ -209,7 +220,7 @@ export const assignDeveloper = catchAsyncErrors(
         await checkProjectLeader(project.projectLeader, req.user.id);
 
         // check user existence
-        const user = await checkUserExists(id);
+        const user = await checkUserExists(_id);
 
         // find by project id and assign developer to project
         const updateProject = await Project.updateOne(
@@ -240,7 +251,7 @@ export const removeAssignDeveloper = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
         const { projectIdentifier } = req.params;
 
-        const { id }: IUser = req.body;
+        const { _id }: IUser = req.body;
 
         // check project existence
         const project = await checkProjectExists(projectIdentifier);
@@ -249,7 +260,7 @@ export const removeAssignDeveloper = catchAsyncErrors(
         await checkProjectLeader(project.projectLeader, req.user.id);
 
         // check user existence
-        const user = await checkUserExists(id);
+        const user = await checkUserExists(_id);
 
         // find by project id and remove assign developer to project
         const updateProject = await Project.updateOne(
@@ -303,13 +314,13 @@ export const getAllAssignDeveloper = catchAsyncErrors(
 // permission => PROJECT_LEADER, DEVELOPER
 export const checkAssignDeveloper = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const { id }: IUser = req.body;
+        const { _id }: IUser = req.body;
         const { projectIdentifier } = req.params;
 
         // check project existence
         const project = await checkProjectExists(projectIdentifier);
 
-        const assign = project.developers.includes(id);
+        const assign = project.developers.includes(_id);
 
         res.status(Code.OK).send(
             new HttpResponse(

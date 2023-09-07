@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import ip from "ip";
 import cookieParser from "cookie-parser";
+import bodyParser from "body-parser";
+const cloudinary = require("cloudinary");
 
 import { connectDatabase } from "./config/database";
 import { Code } from "./enum/code.enum";
@@ -19,13 +21,21 @@ dotenv.config();
 
 // middleware
 app.use(express.json());
-app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(cookieParser());
 
 const PORT = process.env.SERVER_PORT || 5000;
 
 // connect to database
 connectDatabase();
+
+// Setting up cloudinary configuration
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // routes
 app.use("/api/v1/project", projectRoutes);

@@ -8,12 +8,14 @@ export class HttpResponse {
         private statusCode: Code,
         private httpStatus: Status,
         private message: string,
-        private data?: {} | null
+        private data?: {} | null,
+        private token?: string
     ) {
         this.timeStamp = new Date().toLocaleString();
         this.statusCode = statusCode;
         this.httpStatus = httpStatus;
         this.message = message;
         this.data = data;
+        this.token = token;
     }
 }

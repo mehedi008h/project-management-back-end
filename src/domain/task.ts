@@ -1,7 +1,7 @@
 import { Document, Types } from "mongoose";
 
 export interface ITask extends Document {
-    id: Types.ObjectId;
+    _id: string;
     title: string;
     taskIdentifier: string;
     description: string;
