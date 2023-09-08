@@ -94,7 +94,7 @@ export const changeTaskStatus = catchAsyncErrors(
 
 // get all task of a project => api/v1/task/projectIdentifier
 // permission => PROJECT_LEADER, DEVELOPER
-export const getAllTask = catchAsyncErrors(
+export const getProjectAllTask = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, next: NextFunction) => {
         const { projectIdentifier } = req.params;
 
@@ -111,6 +111,21 @@ export const getAllTask = catchAsyncErrors(
 
         res.status(Code.OK).send(
             new HttpResponse(Code.OK, Status.OK, "Get all project tasks", tasks)
+        );
+    }
+);
+
+// get all task of user => api/v1/task/user
+// permission => DEVELOPER
+export const getUserAllTask = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response, next: NextFunction) => {
+        // find all project task
+        const tasks = await Task.find({
+            developer: req.user.id,
+        });
+
+        res.status(Code.OK).send(
+            new HttpResponse(Code.OK, Status.OK, "Get all tasks", tasks)
         );
     }
 );

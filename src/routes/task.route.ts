@@ -3,8 +3,9 @@ import {
     assignTasks,
     changeTaskStatus,
     deleteTask,
-    getAllTask,
+    getProjectAllTask,
     getTaskDetails,
+    getUserAllTask,
     updateTask,
 } from "../controllers/task.controller";
 import { isAuthenticatedUser } from "../middlewares/auth";
@@ -12,7 +13,10 @@ import { isAuthenticatedUser } from "../middlewares/auth";
 const taskRoutes = Router();
 
 taskRoutes.route("/:projectIdentifier").post(isAuthenticatedUser, assignTasks);
-taskRoutes.route("/:projectIdentifier").get(isAuthenticatedUser, getAllTask);
+taskRoutes
+    .route("/:projectIdentifier")
+    .get(isAuthenticatedUser, getProjectAllTask);
+taskRoutes.route("/user/all/task").get(isAuthenticatedUser, getUserAllTask);
 taskRoutes
     .route("/details/:taskIdentifier")
     .get(isAuthenticatedUser, getTaskDetails);

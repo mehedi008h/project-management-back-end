@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { NextFunction, Response } from "express";
 const cloudinary = require("cloudinary");
 import { ExpressRequest } from "../domain/expressRequest.interface";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors";
@@ -99,6 +99,33 @@ export const updateUser = catchAsyncErrors(
                 "User Update Successfully",
                 updateUser
             )
+        );
+    }
+);
+
+// update user password => api/v1/user/update/password
+export const updatePassword = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response, next: NextFunction) => {
+        // check user existence
+        const user = await checkUserExistsById(req.user.id);
+
+        // Check previous user password
+        const isMatched = await user.matchPassword(req.body.oldPassword);
+        if (!isMatched) {
+            return next(
+                new ErrorHandler({
+                    statusCode: Code.BAD_REQUEST,
+                    httpStatus: Status.BAD_REQUEST,
+                    message: "Old password is incorrect",
+                })
+            );
+        }
+
+        user.password = req.body.password;
+        await user.save();
+
+        res.status(Code.OK).send(
+            new HttpResponse(Code.OK, Status.OK, "Password Change Successfully")
         );
     }
 );
