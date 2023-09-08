@@ -13,11 +13,13 @@ import {
 } from "./project.controller";
 import { ErrorHandler } from "../utils/errorHandler";
 import { ExpressRequest } from "../domain/expressRequest.interface";
+import { sendEmail } from "../utils/sendEmail";
+import { checkUserExistsById } from "./user.controller";
 
 // assign new task => api/v1/task/projectIdentifier
 // permission => PROJECT_LEADER
 export const assignTasks = catchAsyncErrors(
-    async (req: ExpressRequest, res: Response) => {
+    async (req: ExpressRequest, res: Response, next: NextFunction) => {
         const { projectIdentifier } = req.params;
         const {
             title,
@@ -33,6 +35,8 @@ export const assignTasks = catchAsyncErrors(
 
         // check project leader
         await checkProjectLeader(project.projectLeader, req.user.id);
+
+        const user = await checkUserExistsById(req.user.id);
 
         // assign new task
         const task = await Task.create({
