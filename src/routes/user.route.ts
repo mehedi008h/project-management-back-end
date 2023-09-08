@@ -19,14 +19,16 @@ userRoutes.route("/").get(isAuthenticatedUser, getAllUsers);
 userRoutes.route("/:id").get(isAuthenticatedUser, getUserDetails);
 userRoutes.route("/update").put(isAuthenticatedUser, updateUser);
 userRoutes.route("/send-invitation").put(isAuthenticatedUser, sendInvitation);
-userRoutes.route("/invitation").get(isAuthenticatedUser, getAllInvitation);
 userRoutes
-    .route("/check-invitation/:id")
+    .route("/invite/all-request")
+    .get(isAuthenticatedUser, getAllInvitation);
+userRoutes
+    .route("/check-invitation/:userIdentifier")
     .get(isAuthenticatedUser, checkSendInvitation);
 userRoutes
     .route("/accept-invitation")
     .put(isAuthenticatedUser, acceptInvitation);
-userRoutes.route("/team-mates").get(isAuthenticatedUser, getAllTeamMates);
+userRoutes.route("/teams/team-mate").get(isAuthenticatedUser, getAllTeamMates);
 userRoutes
     .route("/unsend-invitation")
     .put(isAuthenticatedUser, unsendInvitation);

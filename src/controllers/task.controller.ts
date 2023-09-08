@@ -179,7 +179,7 @@ export const updateTask = catchAsyncErrors(
     }
 );
 
-// delete task by taskIdentifier => api/v1/task/taskIdentifier
+// delete task by taskIdentifier => api/v1/task/delete/taskIdentifier
 // permission => PROJECT_LEADER
 export const deleteTask = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {

@@ -6,6 +6,10 @@ import { IUser } from "../domain/user";
 
 const UserSchema: Schema = new Schema(
     {
+        userIdentifier: {
+            type: String,
+            unique: true,
+        },
         firstName: {
             type: String,
             required: [true, "Please enter your first name"],
@@ -62,15 +66,13 @@ const UserSchema: Schema = new Schema(
         skills: [],
         invitations: [
             {
-                type: Schema.Types.ObjectId,
-                ref: "User",
+                type: String,
                 required: true,
             },
         ],
         teamMates: [
             {
-                type: Schema.Types.ObjectId,
-                ref: "User",
+                type: String,
                 required: true,
             },
         ],

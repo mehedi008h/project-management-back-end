@@ -15,6 +15,9 @@ export const getAllUsers = catchAsyncErrors(
         // get all active users
         const users = await User.find({
             active: true,
+            _id: {
+                $ne: req.user.id,
+            },
         });
         res.status(Code.OK).send(
             new HttpResponse(
@@ -27,12 +30,12 @@ export const getAllUsers = catchAsyncErrors(
     }
 );
 
-// get  user details => api/v1/user/id
+// get  user details => api/v1/user/userIdentifier
 export const getUserDetails = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
         const { id } = req.params;
         // get all active users
-        const user = await checkUserExists(id);
+        const user = await checkUserExistsById(id);
         res.status(Code.OK).send(
             new HttpResponse(
                 Code.OK,
@@ -48,7 +51,7 @@ export const getUserDetails = catchAsyncErrors(
 export const updateUser = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
         // check user existence
-        const user = await checkUserExists(req.user.id);
+        const user = await checkUserExistsById(req.user.id);
 
         const newUserData = {
             firstName: req.body.firstName,
@@ -103,21 +106,21 @@ export const updateUser = catchAsyncErrors(
 // send invitation => api/v1/user/send-invitation
 export const sendInvitation = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const { _id }: IUser = req.body;
+        const { userIdentifier }: IUser = req.body;
         // find current user
-        const currentUser = await checkUserExists(req.user.id);
+        const currentUser = await checkUserExistsById(req.user.id);
 
         // check invitation user exists
-        await checkUserExists(_id);
+        await checkUserExistsByIdentifier(userIdentifier);
 
         // find invitation user and send invitation
         const user = await User.updateOne(
             {
-                _id: _id,
+                userIdentifier: userIdentifier,
             },
             {
                 $addToSet: {
-                    invitations: [currentUser.id],
+                    invitations: [currentUser.userIdentifier],
                 },
             }
         );
@@ -136,12 +139,12 @@ export const sendInvitation = catchAsyncErrors(
 // get all invitations => api/v1/user/invitation
 export const getAllInvitation = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        // find current user
-        const currentUser = await checkUserExists(req.user.id);
+        //find current user
+        const currentUser = await checkUserExistsById(req.user.id);
 
-        // find all invitations of current user
+        //find all invitations of current user
         const users = await User.find({
-            _id: currentUser.invitations,
+            userIdentifier: currentUser?.invitations,
         });
 
         res.status(Code.OK).send(
@@ -155,18 +158,18 @@ export const getAllInvitation = catchAsyncErrors(
     }
 );
 
-// check invitation send or not => api/v1/user/check-invitation/id
+// check invitation send or not => api/v1/user/check-invitation/userIdentifier
 export const checkSendInvitation = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const { id } = req.params;
+        const { userIdentifier } = req.params;
         // find current user
-        const currentUser = await checkUserExists(req.user.id);
+        const currentUser = await checkUserExistsById(req.user.id);
 
         // check invitation user exists
-        const existUser = await checkUserExists(id);
+        const existUser = await checkUserExistsByIdentifier(userIdentifier);
 
         // check invitation send or not
-        const user = currentUser.invitations.includes(existUser.id);
+        const user = currentUser.invitations.includes(existUser.userIdentifier);
 
         res.status(Code.OK).send(
             new HttpResponse(
@@ -182,32 +185,32 @@ export const checkSendInvitation = catchAsyncErrors(
 // accept invitation => api/v1/user/accept-invitation
 export const acceptInvitation = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const { _id }: IUser = req.body;
+        const { userIdentifier }: IUser = req.body;
         // find current user
-        const currentUser = await checkUserExists(req.user.id);
+        const currentUser = await checkUserExistsById(req.user.id);
 
         // check invitation user exists
-        const existsUser = await checkUserExists(_id);
+        const existsUser = await checkUserExistsByIdentifier(userIdentifier);
 
         // update team members current user
         const updateCurrentUser = await User.updateOne(
-            { _id: req.user.id },
+            { userIdentifier: req.user.userIdentifier },
             {
                 $addToSet: {
-                    teamMates: [_id],
+                    teamMates: [userIdentifier],
                 },
                 $pull: {
-                    invitations: _id,
+                    invitations: userIdentifier,
                 },
             }
         );
 
         // update team members invitation send user
         const updateExistsUser = await User.updateOne(
-            { _id: _id },
+            { userIdentifier: userIdentifier },
             {
                 $addToSet: {
-                    teamMates: [req.user.id],
+                    teamMates: [req.user.userIdentifier],
                 },
             }
         );
@@ -227,11 +230,11 @@ export const acceptInvitation = catchAsyncErrors(
 export const getAllTeamMates = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
         // find current user
-        const currentUser = await checkUserExists(req.user.id);
+        const currentUser = await checkUserExistsById(req.user.id);
 
         // find all team mate of current user
         const users = await User.find({
-            _id: currentUser.teamMates,
+            userIdentifier: currentUser.teamMates,
         });
 
         res.status(Code.OK).send(
@@ -248,19 +251,19 @@ export const getAllTeamMates = catchAsyncErrors(
 // unsend invitation => api/v1/user/unsend-invitation
 export const unsendInvitation = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const { _id }: IUser = req.body;
+        const { userIdentifier }: IUser = req.body;
         // find current user
-        const currentUser = await checkUserExists(req.user.id);
+        const currentUser = await checkUserExistsById(req.user.id);
 
         // check invitation user exists
-        const existsUser = await checkUserExists(_id);
+        const existsUser = await checkUserExistsByIdentifier(userIdentifier);
 
         // update and remove invitation
         const updateExistsUser = await User.updateOne(
-            { _id: _id },
+            { userIdentifier: userIdentifier },
             {
                 $pull: {
-                    invitations: req.user.id,
+                    invitations: req.user.userIdentifier,
                 },
             }
         );
@@ -279,29 +282,29 @@ export const unsendInvitation = catchAsyncErrors(
 // remove team mate invitation => api/v1/user/remove-team-mate
 export const removeTeamMate = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const { _id }: IUser = req.body;
+        const { userIdentifier }: IUser = req.body;
         // find current user
-        const currentUser = await checkUserExists(req.user.id);
+        const currentUser = await checkUserExistsById(req.user.id);
 
         // check invitation user exists
-        const existsUser = await checkUserExists(_id);
+        const existsUser = await checkUserExistsByIdentifier(userIdentifier);
 
         // update team members current user
         const updateCurrentUser = await User.updateOne(
-            { _id: req.user.id },
+            { userIdentifier: req.user.userIdentifier },
             {
                 $pull: {
-                    teamMates: _id,
+                    teamMates: userIdentifier,
                 },
             }
         );
 
         // update and remove team mate
         const updateExistsUser = await User.updateOne(
-            { _id: _id },
+            { userIdentifier: userIdentifier },
             {
                 $pull: {
-                    teamMates: req.user.id,
+                    teamMates: req.user.userIdentifier,
                 },
             }
         );
@@ -317,10 +320,27 @@ export const removeTeamMate = catchAsyncErrors(
     }
 );
 
-// check user existence
-export const checkUserExists = async (userId: string) => {
+// check user existence by identifier
+export const checkUserExistsByIdentifier = async (userIdentifier: string) => {
     // find user
-    const user = await User.findById(userId);
+    const user = await User.findOne({
+        userIdentifier,
+    });
+    if (!user) {
+        throw new ErrorHandler({
+            statusCode: Code.NOT_FOUND,
+            httpStatus: Status.NOT_FOUND,
+            message: "User you are looking for does not exist!!!",
+        });
+    }
+
+    return user;
+};
+
+// check user existence by id
+export const checkUserExistsById = async (id: string) => {
+    // find user
+    const user = await User.findById(id);
     if (!user) {
         throw new ErrorHandler({
             statusCode: Code.NOT_FOUND,

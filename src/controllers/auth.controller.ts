@@ -8,7 +8,7 @@ import { Status } from "../enum/status.enum";
 import { randomId } from "../utils/randomId";
 import { sendToken } from "../utils/jwtToken";
 import { ExpressRequest } from "../domain/expressRequest.interface";
-import { checkUserExists } from "./user.controller";
+import { checkUserExistsById } from "./user.controller";
 
 // register user => api/v1/auth/register
 export const registerUser = catchAsyncErrors(
@@ -19,6 +19,7 @@ export const registerUser = catchAsyncErrors(
         const user = await User.create({
             firstName,
             lastName,
+            userIdentifier: randomId(10),
             username: firstName.toLowerCase() + randomId(4),
             email,
             password,
@@ -85,7 +86,7 @@ export const loginUser = catchAsyncErrors(
 export const loggedInUser = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, next: NextFunction) => {
         // find user by userId
-        const user = await checkUserExists(req.user.id);
+        const user = await checkUserExistsById(req.user.id);
 
         res.status(Code.OK).send(
             new HttpResponse(Code.OK, Status.OK, "Get User Successfully", user)
