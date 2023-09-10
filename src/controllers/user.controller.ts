@@ -12,20 +12,34 @@ import { ErrorHandler } from "../utils/errorHandler";
 // get all user => api/v1/user
 export const getAllUsers = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
+        const userCount = await User.countDocuments();
+
+        const keyword = req.query.keyword
+            ? {
+                  firstName: {
+                      $regex: req.query.keyword,
+                      $options: "i",
+                  },
+              }
+            : {};
+
+        const resPerPage = 2;
+        const currentPage = Number(req.query.page) || 1;
+        const skip = resPerPage * (currentPage - 1);
+
         // get all active users
         const users = await User.find({
-            active: true,
-            _id: {
-                $ne: req.user.id,
-            },
-        });
+            ...keyword,
+        })
+            .limit(resPerPage)
+            .skip(skip);
+
         res.status(Code.OK).send(
-            new HttpResponse(
-                Code.OK,
-                Status.OK,
-                "Get all user Successfully",
-                users
-            )
+            new HttpResponse(Code.OK, Status.OK, "Get all user Successfully", {
+                users,
+                userCount,
+                resPerPage,
+            })
         );
     }
 );
