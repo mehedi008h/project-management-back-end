@@ -108,10 +108,16 @@ export const getProjectAllTask = catchAsyncErrors(
         // check permissions to get tasks
         await checkProjectDeveloper(project, req.user.id);
 
+        const currentPage = Number(req.query.page) || 1;
+        const limit = Number(req.query.pageSize) || 8;
+        const skip = (currentPage - 1) * limit;
+
         // find all project task
         const tasks = await Task.find({
             projectIdentifier: project.projectIdentifier,
-        });
+        })
+            .limit(limit)
+            .skip(skip);
 
         res.status(Code.OK).send(
             new HttpResponse(Code.OK, Status.OK, "Get all project tasks", tasks)

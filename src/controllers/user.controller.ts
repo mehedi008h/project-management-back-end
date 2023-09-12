@@ -14,32 +14,35 @@ export const getAllUsers = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
         const userCount = await User.countDocuments();
 
-        const keyword = req.query.keyword
+        // search users by name
+        const keyword = req.query.search
             ? {
                   firstName: {
-                      $regex: req.query.keyword,
+                      $regex: req.query.search,
                       $options: "i",
                   },
               }
             : {};
 
-        const resPerPage = 2;
         const currentPage = Number(req.query.page) || 1;
-        const skip = resPerPage * (currentPage - 1);
+        const limit = Number(req.query.pageSize) || 6;
+        const skip = (currentPage - 1) * limit;
 
         // get all active users
         const users = await User.find({
             ...keyword,
         })
-            .limit(resPerPage)
-            .skip(skip);
+            .limit(limit)
+            .skip(skip)
+            .sort({ createdAt: "descending" });
 
         res.status(Code.OK).send(
-            new HttpResponse(Code.OK, Status.OK, "Get all user Successfully", {
-                users,
-                userCount,
-                resPerPage,
-            })
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Get all user Successfully",
+                users
+            )
         );
     }
 );
