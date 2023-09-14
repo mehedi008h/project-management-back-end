@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 import { IUser } from "../domain/user";
 
@@ -82,6 +83,8 @@ const UserSchema: Schema = new Schema(
             type: Date,
             default: Date.now,
         },
+        resetPasswordToken: String,
+        resetPasswordExpire: Date,
     },
     { timestamps: true }
 );
@@ -106,6 +109,23 @@ UserSchema.methods.getSignedToken = function (password: string) {
     return jwt.sign({ id: this._id }, process.env.JWT_SECRET!, {
         expiresIn: process.env.JWT_EXPIRE,
     });
+};
+
+// Generate password reset token
+UserSchema.methods.getResetPasswordToken = function () {
+    // Generate token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+
+    // Hash and set to resetPasswordToken
+    this.resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+    // Set token expire time
+    this.resetPasswordExpire = Date.now() + 30 * 60 * 1000;
+
+    return resetToken;
 };
 
 export default model<IUser>("User", UserSchema);

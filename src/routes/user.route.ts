@@ -9,6 +9,7 @@ import {
     removeTeamMate,
     sendInvitation,
     unsendInvitation,
+    updatePassword,
     updateUser,
 } from "../controllers/user.controller";
 import { isAuthenticatedUser } from "../middlewares/auth";
@@ -18,6 +19,7 @@ const userRoutes = Router();
 userRoutes.route("/").get(isAuthenticatedUser, getAllUsers);
 userRoutes.route("/:id").get(isAuthenticatedUser, getUserDetails);
 userRoutes.route("/update").put(isAuthenticatedUser, updateUser);
+userRoutes.route("/update/password").put(isAuthenticatedUser, updatePassword);
 userRoutes.route("/send-invitation").put(isAuthenticatedUser, sendInvitation);
 userRoutes
     .route("/invite/all-request")

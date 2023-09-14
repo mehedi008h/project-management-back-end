@@ -82,12 +82,14 @@ export const updateUser = catchAsyncErrors(
 
         // destory existing user photo
         if (req.body.photo) {
-            const image_id = user.photo.public_id;
-            const res = await cloudinary.v2.uploader.destroy(image_id);
+            if (user.photo.public_id) {
+                const image_id = user.photo.public_id;
+                const res = await cloudinary.v2.uploader.destroy(image_id);
+            }
 
             // upload new user photo to cloudinary
             const result = await cloudinary.v2.uploader.upload(req.body.photo, {
-                folder: "genious/avatar",
+                folder: "genius/avatar",
                 width: 150,
                 crop: "scale",
             });
@@ -124,7 +126,9 @@ export const updateUser = catchAsyncErrors(
 export const updatePassword = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, next: NextFunction) => {
         // check user existence
-        const user = await checkUserExistsById(req.user.id);
+        const user: IUser = await User.findById(req.user.id).select(
+            "+password"
+        );
 
         // Check previous user password
         const isMatched = await user.matchPassword(req.body.oldPassword);

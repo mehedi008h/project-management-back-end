@@ -22,7 +22,10 @@ export interface IUser extends Document {
     invitations: string[];
     teamMates: string[];
     createdAt: string;
+    resetPasswordToken: string | undefined;
+    resetPasswordExpire: string | undefined;
 
     matchPassword(password: string): boolean | PromiseLike<boolean>;
     getSignedToken(): string;
+    getResetPasswordToken(): string;
 }

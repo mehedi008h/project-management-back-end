@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import crypto from "crypto";
 import { IUser } from "../domain/user";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors";
 import User from "../models/user.model";
@@ -9,6 +10,9 @@ import { randomId } from "../utils/randomId";
 import { sendToken } from "../utils/jwtToken";
 import { ExpressRequest } from "../domain/expressRequest.interface";
 import { checkUserExistsById } from "./user.controller";
+import { sendEmail } from "../utils/sendEmail";
+import { ErrorHandler } from "../utils/errorHandler";
+import { resetPasswordTemplate } from "../templates/resetPasswordTemplate";
 
 // register user => api/v1/auth/register
 export const registerUser = catchAsyncErrors(
@@ -79,6 +83,113 @@ export const loginUser = catchAsyncErrors(
         }
 
         sendToken(user, Code.OK, res);
+    }
+);
+
+// forgot password => api/v1/auth/password/forgot
+export const forgotPassword = catchAsyncErrors(
+    async (req: Request, res: Response, next: NextFunction) => {
+        const user = await User.findOne({ email: req.body.email });
+
+        // Checks if email and password is entered by user
+        if (!user) {
+            return res.send(
+                new HttpResponse(
+                    Code.BAD_REQUEST,
+                    Status.BAD_REQUEST,
+                    "User not found with this email"
+                )
+            );
+        }
+
+        // Get reset token
+        const resetToken = user.getResetPasswordToken();
+
+        await user.save({ validateBeforeSave: false });
+
+        // Create reset password url
+        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+
+        //reset password template
+        const emailTemplate = resetPasswordTemplate(user.firstName, resetUrl);
+
+        try {
+            await sendEmail({
+                email: user.email,
+                subject: "Genius Password Recovery",
+                message: emailTemplate.message,
+            });
+
+            res.send(
+                new HttpResponse(
+                    Code.OK,
+                    Status.OK,
+                    `Email sent to: ${user.email}`
+                )
+            );
+        } catch (error: any) {
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+
+            await user.save({ validateBeforeSave: false });
+
+            return next(
+                new ErrorHandler({
+                    statusCode: Code.BAD_REQUEST,
+                    httpStatus: Status.BAD_REQUEST,
+                    message: error.message,
+                })
+            );
+        }
+    }
+);
+
+// reset password => api/v1/auth/password/reset/:token
+export const resetPassword = catchAsyncErrors(
+    async (req: Request, res: Response, next: NextFunction) => {
+        // Hash URL token
+        const resetPasswordToken = crypto
+            .createHash("sha256")
+            .update(req.params.token)
+            .digest("hex");
+
+        const user = await User.findOne({
+            resetPasswordToken,
+            resetPasswordExpire: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            return next(
+                new ErrorHandler({
+                    statusCode: Code.BAD_REQUEST,
+                    httpStatus: Status.BAD_REQUEST,
+                    message:
+                        "Password reset token is invalid or has been expired",
+                })
+            );
+        }
+
+        if (req.body.password !== req.body.confirmPassword) {
+            return next(
+                new ErrorHandler({
+                    statusCode: Code.BAD_REQUEST,
+                    httpStatus: Status.BAD_REQUEST,
+                    message: "Password does not match",
+                })
+            );
+        }
+
+        // Setup new password
+        user.password = req.body.password;
+
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+
+        await user.save();
+
+        res.status(Code.OK).send(
+            new HttpResponse(Code.OK, Status.OK, "Reset Password Successfully")
+        );
     }
 );
 

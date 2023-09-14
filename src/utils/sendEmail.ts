@@ -22,7 +22,7 @@ export const sendEmail = async (options: MailInterface) => {
         from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}>`,
         to: options.email,
         subject: options.subject,
-        text: options.message,
+        html: options.message,
     };
 
     await transporter.sendMail(message);
