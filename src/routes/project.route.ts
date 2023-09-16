@@ -5,7 +5,11 @@ import {
     createProject,
     deleteProject,
     getAllAssignDeveloper,
+    getAllCompletedProject,
+    getAllProgressProject,
     getAllProject,
+    getAllTag,
+    getAllTodoProject,
     getProjectDetails,
     removeAssignDeveloper,
     updateProject,
@@ -16,9 +20,17 @@ const projectRoutes = Router();
 
 projectRoutes.route("/").post(isAuthenticatedUser, createProject);
 projectRoutes.route("/").get(isAuthenticatedUser, getAllProject);
+projectRoutes.route("/todo").get(isAuthenticatedUser, getAllTodoProject);
+projectRoutes
+    .route("/progress")
+    .get(isAuthenticatedUser, getAllProgressProject);
+projectRoutes
+    .route("/completed")
+    .get(isAuthenticatedUser, getAllCompletedProject);
 projectRoutes
     .route("/:projectIdentifier")
     .get(isAuthenticatedUser, getProjectDetails);
+projectRoutes.route("/all/tags").get(isAuthenticatedUser, getAllTag);
 projectRoutes
     .route("/:projectIdentifier")
     .delete(isAuthenticatedUser, deleteProject);

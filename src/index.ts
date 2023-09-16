@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import ip from "ip";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
+import fileUpload from "express-fileupload";
 const cloudinary = require("cloudinary");
 
 import { connectDatabase } from "./config/database";
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(cookieParser());
+app.use(fileUpload());
 
 const PORT = process.env.SERVER_PORT || 5000;
 

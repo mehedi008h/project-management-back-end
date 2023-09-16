@@ -12,6 +12,7 @@ import { ErrorHandler } from "../utils/errorHandler";
 import { ExpressRequest } from "../domain/expressRequest.interface";
 import { IUser } from "../domain/user";
 import { checkUserExistsById } from "./user.controller";
+import { ProjectStatus } from "../enum/projectStatus.enum";
 
 // create new project => api/v1/project
 export const createProject = catchAsyncErrors(
@@ -22,6 +23,9 @@ export const createProject = catchAsyncErrors(
         // upload new project photo to cloudinary
         const result = await cloudinary.v2.uploader.upload(req.body.photo, {
             folder: "genious/projects",
+            width: 300,
+            hight: 200,
+            crop: "scale",
         });
 
         const project = await Project.create({
@@ -54,10 +58,17 @@ export const createProject = catchAsyncErrors(
 // permission => PROJECT_LEADER, DEVELOPER
 export const getAllProject = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
+        const currentPage = Number(req.query.page) || 1;
+        const limit = Number(req.query.pageSize) || 6;
+        const skip = (currentPage - 1) * limit;
+
         // find specific developer project
         const projects = await Project.find({
             developers: req.user.id,
-        });
+        })
+            .limit(limit)
+            .skip(skip)
+            .sort({ createdAt: "desc" });
 
         res.status(Code.OK).send(
             new HttpResponse(
@@ -65,6 +76,148 @@ export const getAllProject = catchAsyncErrors(
                 Status.OK,
                 "Successfully get projects",
                 projects
+            )
+        );
+    }
+);
+
+// get all project => api/v1/project/todo
+// permission => PROJECT_LEADER, DEVELOPER
+export const getAllTodoProject = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response, projectStatus: string) => {
+        // search project by name
+        const keyword = req.query.search
+            ? {
+                  title: {
+                      $regex: req.query.search,
+                      $options: "i",
+                  },
+              }
+            : {};
+
+        const currentPage = Number(req.query.page) || 1;
+        const limit = Number(req.query.pageSize) || 3;
+        const skip = (currentPage - 1) * limit;
+
+        // find specific developer project
+        const projects = await Project.find({
+            status: ProjectStatus.TODO,
+            developers: req.user.id,
+            ...keyword,
+        })
+            .limit(limit)
+            .skip(skip)
+            .sort({ createdAt: "desc" });
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Successfully get projects",
+                projects
+            )
+        );
+    }
+);
+
+// get all progress project => api/v1/project/progress
+// permission => PROJECT_LEADER, DEVELOPER
+export const getAllProgressProject = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response, projectStatus: string) => {
+        // search project by name
+        const keyword = req.query.search
+            ? {
+                  title: {
+                      $regex: req.query.search,
+                      $options: "i",
+                  },
+              }
+            : {};
+
+        const currentPage = Number(req.query.page) || 1;
+        const limit = Number(req.query.pageSize) || 3;
+        const skip = (currentPage - 1) * limit;
+
+        // find specific developer project
+        const projects = await Project.find({
+            status: ProjectStatus.PROGRESS,
+            developers: req.user.id,
+            ...keyword,
+        })
+            .limit(limit)
+            .skip(skip)
+            .sort({ createdAt: "desc" });
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Successfully get projects",
+                projects
+            )
+        );
+    }
+);
+
+// get all completed project => api/v1/project/completed
+// permission => PROJECT_LEADER, DEVELOPER
+export const getAllCompletedProject = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response, projectStatus: string) => {
+        // search project by name
+        const keyword = req.query.search
+            ? {
+                  title: {
+                      $regex: req.query.search,
+                      $options: "i",
+                  },
+              }
+            : {};
+
+        const currentPage = Number(req.query.page) || 1;
+        const limit = Number(req.query.pageSize) || 3;
+        const skip = (currentPage - 1) * limit;
+
+        // find specific developer project
+        const projects = await Project.find({
+            status: ProjectStatus.COMPLETED,
+            developers: req.user.id,
+            ...keyword,
+        })
+            .limit(limit)
+            .skip(skip)
+            .sort({ createdAt: "desc" });
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Successfully get projects",
+                projects
+            )
+        );
+    }
+);
+
+// get all project => api/v1/project
+// permission => PROJECT_LEADER, DEVELOPER
+export const getAllTag = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        // find specific developer project
+        const projects = await Project.find({
+            developers: req.user.id,
+        });
+
+        let allTags = new Set([
+            ...projects.flatMap((projects) => projects.tags),
+        ]);
+        let tags = [...allTags];
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Successfully get all tags",
+                tags
             )
         );
     }
