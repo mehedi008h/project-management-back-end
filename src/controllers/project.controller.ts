@@ -13,6 +13,7 @@ import { ExpressRequest } from "../domain/expressRequest.interface";
 import { IUser } from "../domain/user";
 import { checkUserExistsById } from "./user.controller";
 import { ProjectStatus } from "../enum/projectStatus.enum";
+import APIFeatures from "../utils/apiFeatures";
 
 // create new project => api/v1/project
 export const createProject = catchAsyncErrors(
@@ -85,29 +86,19 @@ export const getAllProject = catchAsyncErrors(
 // permission => PROJECT_LEADER, DEVELOPER
 export const getAllTodoProject = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, projectStatus: string) => {
-        // search project by name
-        const keyword = req.query.search
-            ? {
-                  title: {
-                      $regex: req.query.search,
-                      $options: "i",
-                  },
-              }
-            : {};
+        const resPerPage = 3;
+        const apiFeatures = new APIFeatures(
+            Project.find({
+                status: ProjectStatus.TODO,
+                developers: req.user.id,
+            }),
+            req.query
+        )
+            .search()
+            .filter()
+            .pagination(resPerPage);
 
-        const currentPage = Number(req.query.page) || 1;
-        const limit = Number(req.query.pageSize) || 3;
-        const skip = (currentPage - 1) * limit;
-
-        // find specific developer project
-        const projects = await Project.find({
-            status: ProjectStatus.TODO,
-            developers: req.user.id,
-            ...keyword,
-        })
-            .limit(limit)
-            .skip(skip)
-            .sort({ createdAt: "desc" });
+        let projects = await apiFeatures.query;
 
         res.status(Code.OK).send(
             new HttpResponse(
@@ -124,29 +115,19 @@ export const getAllTodoProject = catchAsyncErrors(
 // permission => PROJECT_LEADER, DEVELOPER
 export const getAllProgressProject = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, projectStatus: string) => {
-        // search project by name
-        const keyword = req.query.search
-            ? {
-                  title: {
-                      $regex: req.query.search,
-                      $options: "i",
-                  },
-              }
-            : {};
+        const resPerPage = 3;
+        const apiFeatures = new APIFeatures(
+            Project.find({
+                status: ProjectStatus.PROGRESS,
+                developers: req.user.id,
+            }),
+            req.query
+        )
+            .search()
+            .filter()
+            .pagination(resPerPage);
 
-        const currentPage = Number(req.query.page) || 1;
-        const limit = Number(req.query.pageSize) || 3;
-        const skip = (currentPage - 1) * limit;
-
-        // find specific developer project
-        const projects = await Project.find({
-            status: ProjectStatus.PROGRESS,
-            developers: req.user.id,
-            ...keyword,
-        })
-            .limit(limit)
-            .skip(skip)
-            .sort({ createdAt: "desc" });
+        let projects = await apiFeatures.query;
 
         res.status(Code.OK).send(
             new HttpResponse(
@@ -163,29 +144,19 @@ export const getAllProgressProject = catchAsyncErrors(
 // permission => PROJECT_LEADER, DEVELOPER
 export const getAllCompletedProject = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, projectStatus: string) => {
-        // search project by name
-        const keyword = req.query.search
-            ? {
-                  title: {
-                      $regex: req.query.search,
-                      $options: "i",
-                  },
-              }
-            : {};
+        const resPerPage = 3;
+        const apiFeatures = new APIFeatures(
+            Project.find({
+                status: ProjectStatus.COMPLETED,
+                developers: req.user.id,
+            }),
+            req.query
+        )
+            .search()
+            .filter()
+            .pagination(resPerPage);
 
-        const currentPage = Number(req.query.page) || 1;
-        const limit = Number(req.query.pageSize) || 3;
-        const skip = (currentPage - 1) * limit;
-
-        // find specific developer project
-        const projects = await Project.find({
-            status: ProjectStatus.COMPLETED,
-            developers: req.user.id,
-            ...keyword,
-        })
-            .limit(limit)
-            .skip(skip)
-            .sort({ createdAt: "desc" });
+        let projects = await apiFeatures.query;
 
         res.status(Code.OK).send(
             new HttpResponse(
