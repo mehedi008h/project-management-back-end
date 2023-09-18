@@ -13,6 +13,15 @@ import { checkUserExistsById } from "./user.controller";
 import { sendEmail } from "../utils/sendEmail";
 import { ErrorHandler } from "../utils/errorHandler";
 import { resetPasswordTemplate } from "../templates/resetPasswordTemplate";
+import { OAuth2Client } from "google-auth-library";
+const cloudinary = require("cloudinary");
+import jwtDecode from "jwt-decode";
+
+const oAuth2Client = new OAuth2Client(
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+    "postmessage"
+);
 
 // register user => api/v1/auth/register
 export const registerUser = catchAsyncErrors(
@@ -194,6 +203,44 @@ export const resetPassword = catchAsyncErrors(
 );
 
 // get currently authenticated user
+export const googleLogin = catchAsyncErrors(
+    async (req: Request, res: Response, next: NextFunction) => {
+        const { tokens } = await oAuth2Client.getToken(req.body.code); // exchange code for tokens
+
+        const token = tokens.id_token as string;
+        const ticket: dataCredential = jwtDecode(token);
+
+        const user = await User.findOne({
+            email: ticket.email,
+        });
+
+        if (user) {
+            sendToken(user, Code.OK, res);
+        } else {
+            // upload new user photo to cloudinary
+            const result = await cloudinary.v2.uploader.upload(ticket.picture, {
+                folder: "genius/avatar",
+                width: 150,
+                crop: "scale",
+            });
+            const newUser = await User.create({
+                email: ticket.email,
+                firstName: ticket.given_name,
+                lastName: ticket.family_name,
+                userIdentifier: randomId(10),
+                username: ticket.given_name.toLowerCase() + randomId(4),
+                password: randomId(12),
+                photo: {
+                    public_id: result.public_id,
+                    url: result.secure_url,
+                },
+            });
+            sendToken(newUser, Code.OK, res);
+        }
+    }
+);
+
+// get currently authenticated user
 export const loggedInUser = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, next: NextFunction) => {
         // find user by userId
@@ -218,3 +265,19 @@ export const logout = catchAsyncErrors(
         );
     }
 );
+
+export type dataCredential = {
+    aud: string;
+    azp: string;
+    email: string;
+    email_verified: boolean;
+    exp: number;
+    family_name: string;
+    given_name: string;
+    iss: string;
+    jti: string;
+    name: string;
+    nbf: number;
+    picture: string;
+    sub: string;
+};
