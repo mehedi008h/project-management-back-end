@@ -11,6 +11,7 @@ import {
     getAllTag,
     getAllTodoProject,
     getProjectDetails,
+    getProjects,
     removeAssignDeveloper,
     updateProject,
 } from "../controllers/project.controller";
@@ -20,6 +21,7 @@ const projectRoutes = Router();
 
 projectRoutes.route("/").post(isAuthenticatedUser, createProject);
 projectRoutes.route("/").get(isAuthenticatedUser, getAllProject);
+projectRoutes.route("/user/all").get(isAuthenticatedUser, getProjects);
 projectRoutes.route("/todo").get(isAuthenticatedUser, getAllTodoProject);
 projectRoutes
     .route("/progress")

@@ -12,8 +12,6 @@ import { ErrorHandler } from "../utils/errorHandler";
 // get all user => api/v1/user
 export const getAllUsers = catchAsyncErrors(
     async (req: ExpressRequest, res: Response) => {
-        const userCount = await User.countDocuments();
-
         // search users by name
         const keyword = req.query.search
             ? {
@@ -280,10 +278,28 @@ export const getAllTeamMates = catchAsyncErrors(
         // find current user
         const currentUser = await checkUserExistsById(req.user.id);
 
+        // search users by name
+        const keyword = req.query.search
+            ? {
+                  firstName: {
+                      $regex: req.query.search,
+                      $options: "i",
+                  },
+              }
+            : {};
+
+        const currentPage = Number(req.query.page) || 1;
+        const limit = Number(req.query.pageSize) || 6;
+        const skip = (currentPage - 1) * limit;
+
         // find all team mate of current user
         const users = await User.find({
+            ...keyword,
             userIdentifier: currentUser.teamMates,
-        });
+        })
+            .limit(limit)
+            .skip(skip)
+            .sort({ createdAt: "descending" });
 
         res.status(Code.OK).send(
             new HttpResponse(

@@ -82,6 +82,26 @@ export const getAllProject = catchAsyncErrors(
     }
 );
 
+// get all project => api/v1/project
+// permission => PROJECT_LEADER, DEVELOPER
+export const getProjects = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response) => {
+        // find specific developer project
+        const projects = await Project.find({
+            developers: req.user.id,
+        });
+
+        res.status(Code.OK).send(
+            new HttpResponse(
+                Code.OK,
+                Status.OK,
+                "Successfully get projects",
+                projects
+            )
+        );
+    }
+);
+
 // get all project => api/v1/project/todo
 // permission => PROJECT_LEADER, DEVELOPER
 export const getAllTodoProject = catchAsyncErrors(
