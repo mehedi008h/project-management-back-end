@@ -20,10 +20,14 @@ import userRoutes from "./routes/user.route";
 const app = express();
 dotenv.config();
 
+const corsOptions = {
+    origin: ["https://genius-self.vercel.app", "http://localhost:5173"],
+};
+
 // middleware
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors({ origin: "https://genius-self.vercel.app", credentials: true }));
+app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(fileUpload());
 
@@ -38,6 +42,8 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+app.options("/api/v1/", cors(corsOptions));
 
 // routes
 app.use("/api/v1/project", projectRoutes);
