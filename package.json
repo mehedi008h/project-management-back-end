@@ -20,7 +20,9 @@
         "@types/ip": "^1.1.0",
         "@types/jsonwebtoken": "^9.0.2",
         "@types/node": "^20.5.1",
-        "@types/nodemailer": "^6.4.9"
+        "@types/nodemailer": "^6.4.9",
+        "pre-commit": "^1.2.2",
+        "rimraf": "^5.0.5"
     },
     "dependencies": {
         "bcrypt": "^5.1.1",

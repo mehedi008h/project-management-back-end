@@ -15,6 +15,7 @@ import { ErrorHandler } from "../utils/errorHandler";
 import { ExpressRequest } from "../domain/expressRequest.interface";
 import { sendEmail } from "../utils/sendEmail";
 import { checkUserExistsById } from "./user.controller";
+import { ProjectStatus } from "../enum/projectStatus.enum";
 
 // assign new task => api/v1/task/projectIdentifier
 // permission => PROJECT_LEADER
@@ -98,6 +99,57 @@ export const changeTaskStatus = catchAsyncErrors(
 
 // get all task of a project => api/v1/task/projectIdentifier
 // permission => PROJECT_LEADER, DEVELOPER
+export const getDashboardTask = catchAsyncErrors(
+    async (req: ExpressRequest, res: Response, next: NextFunction) => {
+        // search task by project
+        const keyword = req.query.search
+            ? {
+                  projectIdentifier: {
+                      $regex: req.query.search,
+                      $options: "i",
+                  },
+              }
+            : {};
+
+        // find all project task
+        const tasks = await Task.find({
+            developer: req.user.id,
+            ...keyword,
+        });
+
+        // get complete tasks
+        const completedTasks = tasks.filter(
+            (task) =>
+                task.status === ProjectStatus.COMPLETED &&
+                new Date(task.endDate) > new Date()
+        );
+
+        // get complete tasks
+        const incompletedTask = tasks.filter(
+            (task) =>
+                task.status !== ProjectStatus.COMPLETED ||
+                new Date(task.endDate) > new Date()
+        );
+
+        // get overdue tasks
+        const overDueTasks = tasks.filter(
+            (task) =>
+                task.status === ProjectStatus.COMPLETED &&
+                new Date(task.endDate) < new Date()
+        );
+
+        res.status(Code.OK).send(
+            new HttpResponse(Code.OK, Status.OK, "Get all project tasks", {
+                completedTasks,
+                incompletedTask,
+                overDueTasks,
+                tasks,
+            })
+        );
+    }
+);
+// get all task of a project => api/v1/task/projectIdentifier
+// permission => PROJECT_LEADER, DEVELOPER
 export const getProjectAllTask = catchAsyncErrors(
     async (req: ExpressRequest, res: Response, next: NextFunction) => {
         const { projectIdentifier } = req.params;
@@ -168,6 +220,7 @@ export const updateTask = catchAsyncErrors(
             endDate,
             tags,
             priority,
+            developer,
         }: ITask = req.body;
 
         // find task in project
@@ -189,6 +242,7 @@ export const updateTask = catchAsyncErrors(
                     startDate,
                     endDate,
                     priority,
+                    developer,
                 },
             }
         );

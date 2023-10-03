@@ -3,6 +3,7 @@ import {
     assignTasks,
     changeTaskStatus,
     deleteTask,
+    getDashboardTask,
     getProjectAllTask,
     getTaskDetails,
     getUserAllTask,
@@ -16,6 +17,9 @@ taskRoutes.route("/:projectIdentifier").post(isAuthenticatedUser, assignTasks);
 taskRoutes
     .route("/:projectIdentifier")
     .get(isAuthenticatedUser, getProjectAllTask);
+taskRoutes
+    .route("/dashboard/all-task/status")
+    .get(isAuthenticatedUser, getDashboardTask);
 taskRoutes.route("/user/all/task").get(isAuthenticatedUser, getUserAllTask);
 taskRoutes
     .route("/details/:taskIdentifier")
