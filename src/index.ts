@@ -17,11 +17,12 @@ import taskRoutes from "./routes/task.route";
 import authRoutes from "./routes/auth.route";
 import userRoutes from "./routes/user.route";
 
-const app = express();
 dotenv.config();
+const app = express();
 
 const corsOptions = {
-    origin: ["https://genius-self.vercel.app", "http://localhost:5173"],
+    origin: process.env.FRONT_END_URL,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 };
 
 // middleware

@@ -117,7 +117,7 @@ export const forgotPassword = catchAsyncErrors(
         await user.save({ validateBeforeSave: false });
 
         // Create reset password url
-        const resetUrl = `https://genius-self.vercel.app/reset-password/${resetToken}`;
+        const resetUrl = `${process.env.FRONT_END_URL}/reset-password/${resetToken}`;
 
         //reset password template
         const emailTemplate = resetPasswordTemplate(user.firstName, resetUrl);
